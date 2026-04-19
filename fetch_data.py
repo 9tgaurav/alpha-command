@@ -45,20 +45,25 @@ INDEX_TICKERS = {
 }
 
 # ── SECTOR MAP ─────────────────────────────────────────────────────────────────
-SECTOR_ETF_MAP = {
-    "IT/Tech":    "NIFTYIT.NS",
-    "Banking":    "BANKNIFTY.NS",
-    "Pharma":     "NIFTYPHARMA.NS",
-    "Auto":       "NIFTYAUTO.NS",
-    "FMCG":       "NIFTYFMCG.NS",
-    "Metals":     "NIFTYMETAL.NS",
-    "Realty":     "NIFTYREALTY.NS",
-    "Infra":      "NIFTYINFRA.NS",
-    "Energy":     "NIFTYENERGY.NS",
-    "Defence":    "MIDFSMALL400.NS",
-    "Chemical":   "NIFTYCHEMICAL.NS",
-    "Media":      "NIFTYMEDIA.NS",
+# Using representative large-cap stocks as sector proxies (reliable on yfinance)
+# Each tuple: (primary_ticker, fallback_ticker)
+SECTOR_PROXY_MAP = {
+    "IT/Tech":    ("^CNXIT",        "INFY.NS"),
+    "Banking":    ("^NSEBANK",      "HDFCBANK.NS"),
+    "Pharma":     ("^CNXPHARMA",    "SUNPHARMA.NS"),
+    "Auto":       ("^CNXAUTO",      "MARUTI.NS"),
+    "FMCG":       ("^CNXFMCG",      "HINDUNILVR.NS"),
+    "Metals":     ("^CNXMETAL",     "TATASTEEL.NS"),
+    "Realty":     ("^CNXREALTY",    "DLF.NS"),
+    "Energy":     ("^CNXENERGY",    "RELIANCE.NS"),
+    "Defence":    ("HAL.NS",        "BEL.NS"),
+    "Chemical":   ("PIDILITIND.NS", "SRF.NS"),
+    "Media":      ("ZEEL.NS",       "SUNTV.NS"),
+    "Infra":      ("^CNXINFRA",     "LT.NS"),
 }
+
+# Keep old name for backward compat
+SECTOR_ETF_MAP = {k: v[0] for k, v in SECTOR_PROXY_MAP.items()}
 
 # ── HELPERS ────────────────────────────────────────────────────────────────────
 
@@ -244,11 +249,14 @@ def fetch_indices():
 def fetch_sectors():
     print("\n🗺 Fetching sector data...")
     results = []
-    for sec, etf in SECTOR_ETF_MAP.items():
-        df = fetch_history(etf, period="5d")
+    for sec, (primary, fallback) in SECTOR_PROXY_MAP.items():
+        df = fetch_history(primary, period="5d")
         if df is None or len(df) < 2:
-            # fallback: neutral
+            print(f"  ↳ {sec}: primary {primary} failed, trying {fallback}...")
+            df = fetch_history(fallback, period="5d")
+        if df is None or len(df) < 2:
             results.append({"name": sec, "pct": "N/A", "type": "neutral", "chg": 0})
+            print(f"  ✗ {sec}: both tickers failed")
             continue
         close = df["Close"]
         chg   = pct_change(close.iloc[-1], close.iloc[-2])
