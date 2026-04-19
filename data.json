@@ -1,7 +1,7 @@
 {
   "meta": {
     "fetch_date": "2026-04-19",
-    "fetch_time": "2026-04-19 16:15 IST",
+    "fetch_time": "2026-04-19 16:29 IST",
     "data_source": "Yahoo Finance (yfinance)",
     "is_live": false,
     "market_close": "15:30 IST",
@@ -58,75 +58,75 @@
   "sectors": [
     {
       "name": "IT/Tech",
-      "pct": "N/A",
+      "pct": "-0.02%",
       "type": "neutral",
-      "chg": 0
+      "chg": -0.02
     },
     {
       "name": "Banking",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+0.85%",
+      "type": "warm",
+      "chg": 0.85
     },
     {
       "name": "Pharma",
-      "pct": "N/A",
+      "pct": "+0.14%",
       "type": "neutral",
-      "chg": 0
+      "chg": 0.14
     },
     {
       "name": "Auto",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+0.2%",
+      "type": "warm",
+      "chg": 0.2
     },
     {
       "name": "FMCG",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+2.65%",
+      "type": "hot",
+      "chg": 2.65
     },
     {
       "name": "Metals",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+1.1%",
+      "type": "warm",
+      "chg": 1.1
     },
     {
       "name": "Realty",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
-    },
-    {
-      "name": "Infra",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+0.94%",
+      "type": "warm",
+      "chg": 0.94
     },
     {
       "name": "Energy",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+1.83%",
+      "type": "hot",
+      "chg": 1.83
     },
     {
       "name": "Defence",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+0.57%",
+      "type": "warm",
+      "chg": 0.57
     },
     {
       "name": "Chemical",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+4.69%",
+      "type": "hot",
+      "chg": 4.69
     },
     {
       "name": "Media",
-      "pct": "N/A",
-      "type": "neutral",
-      "chg": 0
+      "pct": "+1.05%",
+      "type": "warm",
+      "chg": 1.05
+    },
+    {
+      "name": "Infra",
+      "pct": "+0.84%",
+      "type": "warm",
+      "chg": 0.84
     }
   ],
   "watchlist": [
