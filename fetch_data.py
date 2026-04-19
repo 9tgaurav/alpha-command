@@ -205,20 +205,26 @@ def grade_setup(ind: dict, rs: int) -> str:
 
 
 def suggest_levels(ltp, ma50, stage, grade):
-    """Simple pivot-based entry/stop/target for display."""
+    """Simple pivot-based entry/stop/target for display.
+    CEO RULE: Any setup where risk > 5% of entry is auto-rejected.
+    """
     if grade in ("REJECT", "C", "B") or not ltp:
         return None, None, None, None
 
     # Entry: slightly above current price (assumes at/near pivot)
     entry = round(ltp * 1.015, 1)
-    # Stop: below 50-DMA or 8% below entry
+    # Stop: below 50-DMA or 8% below entry (whichever is tighter)
     stop_ma  = round(ma50 * 0.99, 1) if ma50 else None
     stop_pct = round(entry * 0.92, 1)
     stop = stop_ma if (stop_ma and stop_ma > stop_pct) else stop_pct
     risk = entry - stop
-    t1   = round(entry + 2 * risk, 1)   # 2R
-    t2   = round(entry + 3 * risk, 1)   # 3R
     rr   = round(risk / entry * 100, 1) if entry else None
+
+    # ── CEO HARD RULE: Risk > 5% → CEO rejects the pick ──────────────────
+    if rr is None or rr > 5.0:
+        return None, None, None, None   # CEO vetoes — no levels published
+
+    t1 = round(entry + 2 * risk, 1)   # 2R target
     return entry, stop, t1, rr
 
 
@@ -336,9 +342,14 @@ def fetch_watchlist(tickers: list):
         ind["tt_score"] = sum(1 for v in ind["tt_checks"].values() if v is True)
         grade = grade_setup(ind, rs)
         entry, stop, target, rr = suggest_levels(ind["ltp"], ind["ma50"], ind["stage"], grade)
+
+        # CEO HARD RULE: if suggest_levels returned None due to risk > 5%, mark CEO VETO
+        ceo_vetoed = (grade not in ("REJECT", "C", "B") and entry is None)
+        final_grade = "CEO VETO" if ceo_vetoed else grade
+
         results.append({
             "ticker":    t,
-            "name":      t,                # fallback; could enrich from NSE CSV
+            "name":      t,
             "ltp":       ind["ltp"],
             "chg":       ind["chg"],
             "ma50":      ind["ma50"],
@@ -351,7 +362,8 @@ def fetch_watchlist(tickers: list):
             "stage":     ind["stage"],
             "tt":        ind["tt_score"],
             "tt_checks": ind["tt_checks"],
-            "grade":     grade,
+            "grade":     final_grade,
+            "ceo_veto":  ceo_vetoed,
             "entry":     entry,
             "stop":      stop,
             "target":    target,
@@ -360,8 +372,8 @@ def fetch_watchlist(tickers: list):
             "avg_vol_20":ind["avg_vol_20"],
         })
 
-    # Sort: A+ first, then by RS rank
-    grade_order = {"A+": 0, "A": 1, "B+": 2, "B": 3, "C": 4, "REJECT": 5}
+    # Sort: A+ first, then by RS rank. CEO VETO slots after B+
+    grade_order = {"A+": 0, "A": 1, "B+": 2, "CEO VETO": 3, "B": 4, "C": 5, "REJECT": 6}
     results.sort(key=lambda x: (grade_order.get(x["grade"], 9), -(x["rs"] or 0)))
     return results
 
@@ -391,11 +403,12 @@ def main():
     watchlist = fetch_watchlist(tickers)
 
     # Summary stats
-    go_trades = [s for s in watchlist if s["grade"] in ("A+", "A")]
-    watch_trades = [s for s in watchlist if s["grade"] == "B+"]
+    go_trades     = [s for s in watchlist if s["grade"] in ("A+", "A")]
+    watch_trades  = [s for s in watchlist if s["grade"] == "B+"]
+    veto_trades   = [s for s in watchlist if s["grade"] == "CEO VETO"]
     reject_trades = [s for s in watchlist if s["grade"] in ("C", "REJECT")]
 
-    # Top consensus picks (A+ or A grade, highest RS)
+    # Top consensus picks (A+ or A grade, highest RS, risk ≤ 5%)
     top_picks = [s["ticker"] for s in go_trades[:5]]
 
     # Market regime from Nifty 200-DMA
@@ -417,6 +430,7 @@ def main():
             "top_picks":    top_picks,
             "go_count":     len(go_trades),
             "watch_count":  len(watch_trades),
+            "veto_count":   len(veto_trades),
             "reject_count": len(reject_trades),
         },
         "indices":    indices,
