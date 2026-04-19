@@ -1,0 +1,127 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Alpha Command — EOD Data Fetch & Deploy
+#  Runs every weekday at 10:15 UTC = 3:45 PM IST (15 mins after NSE close)
+#  Also runs at 4:00 UTC = 9:30 AM IST (pre-market snapshot)
+#  Manual trigger available anytime via GitHub Actions UI
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Fetch EOD Data & Deploy
+
+on:
+  # Weekdays: 15 mins after NSE close (3:45 PM IST = 10:15 UTC)
+  schedule:
+    - cron: "15 10 * * 1-5"   # Post-market EOD (primary)
+    - cron: "30 3  * * 1-5"   # Pre-market morning snapshot (9:00 AM IST)
+
+  # Manual trigger — run anytime from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: "Comma-separated tickers to fetch (leave blank for full watchlist)"
+        required: false
+        default: ""
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # needed to push data.json back to repo
+
+    steps:
+      # ── 1. Checkout repo ──────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Set up Python ──────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. Install dependencies ───────────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install yfinance>=0.2.40 pandas>=2.0.0 numpy>=1.24.0 requests>=2.31.0
+
+      # ── 4. Run the data fetch ─────────────────────────────────────────────
+      - name: Fetch EOD data from yfinance
+        run: |
+          if [ -n "${{ github.event.inputs.tickers }}" ]; then
+            python fetch_data.py --tickers "${{ github.event.inputs.tickers }}"
+          else
+            python fetch_data.py
+          fi
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      # ── 5. Verify output ──────────────────────────────────────────────────
+      - name: Verify data.json was created
+        run: |
+          if [ ! -f data.json ]; then
+            echo "❌ data.json not found — fetch failed"
+            exit 1
+          fi
+          echo "✅ data.json exists"
+          echo "File size: $(wc -c < data.json) bytes"
+          echo "Stocks fetched: $(python -c "import json; d=json.load(open('data.json')); print(len(d['watchlist']))")"
+          echo "Fetch time: $(python -c "import json; d=json.load(open('data.json')); print(d['meta']['fetch_time'])")"
+          echo "Market regime: $(python -c "import json; d=json.load(open('data.json')); print(d['meta']['regime'])")"
+
+      # ── 6. Commit data.json back to repo ──────────────────────────────────
+      - name: Commit and push updated data.json
+        run: |
+          git config --global user.name  "Alpha Command Bot"
+          git config --global user.email "alpha-command-bot@github-actions"
+          git add data.json
+          # Only commit if data.json actually changed
+          if git diff --staged --quiet; then
+            echo "No changes to data.json — skipping commit"
+          else
+            FETCH_TIME=$(python -c "import json; d=json.load(open('data.json')); print(d['meta']['fetch_time'])")
+            REGIME=$(python -c "import json; d=json.load(open('data.json')); print(d['meta']['regime'])")
+            git commit -m "📊 EOD data update — ${FETCH_TIME} — Regime: ${REGIME}"
+            git push
+            echo "✅ data.json committed and pushed"
+          fi
+
+      # ── 7. Deploy to GitHub Pages ─────────────────────────────────────────
+      - name: Deploy HTML app to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./          # deploy entire repo root
+          publish_branch: gh-pages
+          force_orphan: false
+          keep_files: true
+          exclude_assets: ".github,*.py,*.sh,*.bat,*.md,requirements.txt,__pycache__,logs"
+          commit_message: "🚀 Deploy Alpha Command — EOD update"
+
+      # ── 8. Print summary ──────────────────────────────────────────────────
+      - name: Print fetch summary
+        if: always()
+        run: |
+          echo ""
+          echo "════════════════════════════════════════"
+          echo "  Alpha Command — Fetch Summary"
+          echo "════════════════════════════════════════"
+          if [ -f data.json ]; then
+            python -c "
+          import json
+          d = json.load(open('data.json'))
+          m = d['meta']
+          print(f'  Fetch time : {m[\"fetch_time\"]}')
+          print(f'  Stocks     : {len(d[\"watchlist\"])}')
+          print(f'  GO trades  : {m[\"go_count\"]}')
+          print(f'  WATCH      : {m[\"watch_count\"]}')
+          print(f'  Rejected   : {m[\"reject_count\"]}')
+          print(f'  Regime     : {m[\"regime\"]}')
+          print(f'  Top picks  : {\" | \".join(m[\"top_picks\"])}')
+          "
+          else
+            echo "  data.json not found"
+          fi
+          echo "════════════════════════════════════════"

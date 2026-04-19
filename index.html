@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Command — Multi-Agent Swing Trading Advisory</title>
+<style>
+:root {
+  --bg-primary: #07090f;
+  --bg-secondary: #0d1120;
+  --bg-card: #111827;
+  --bg-card2: #172035;
+  --accent-gold: #f0a500;
+  --accent-green: #00e676;
+  --accent-red: #ff3d57;
+  --accent-blue: #4facfe;
+  --accent-purple: #a855f7;
+  --accent-cyan: #00d4ff;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8892b0;
+  --text-muted: #4a5568;
+  --border: #1a2640;
+  --border-light: #223058;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --chat-width: 400px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── TICKER TAPE ── */
+.ticker-tape{
+  background:linear-gradient(90deg,#070b14,#0d1527,#070b14);
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+  height:32px;
+  display:flex;
+  align-items:center;
+}
+.tape-track{
+  display:flex;
+  gap:0;
+  animation:tapescroll 35s linear infinite;
+  white-space:nowrap;
+  will-change:transform;
+}
+@keyframes tapescroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tape-item{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:0 24px;
+  font-size:11px;
+  font-weight:600;
+  border-right:1px solid var(--border);
+  height:32px;
+}
+.tape-name{color:var(--text-muted)}
+.tape-val{color:var(--text-primary)}
+.tape-chg.up{color:var(--accent-green)}
+.tape-chg.dn{color:var(--accent-red)}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#07090f 0%,#0d1a2e 50%,#07090f 100%);
+  border-bottom:1px solid var(--border);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(12px);
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:42px;height:42px;
+  background:linear-gradient(135deg,var(--accent-gold),#e06000);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 0 24px rgba(240,165,0,0.35);
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 24px rgba(240,165,0,0.35)}50%{box-shadow:0 0 40px rgba(240,165,0,0.6)}}
+.logo-text h1{
+  font-size:19px;font-weight:800;letter-spacing:1.5px;
+  background:linear-gradient(90deg,var(--accent-gold),var(--accent-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.logo-text p{font-size:10px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+
+.header-right{display:flex;align-items:center;gap:12px}
+.market-pill{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+  padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:8px;
+}
+.dot-live{
+  width:8px;height:8px;background:var(--accent-green);border-radius:50%;
+  animation:livePulse 2s infinite;
+}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5)}50%{opacity:.8;box-shadow:0 0 0 6px rgba(0,230,118,0)}}
+
+.data-stamp{
+  background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);
+  border-radius:8px;padding:5px 12px;font-size:10px;color:var(--accent-gold);
+  display:flex;align-items:center;gap:6px;
+}
+.data-stamp span{color:var(--text-muted)}
+
+.refresh-btn{
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  border:none;border-radius:8px;color:#fff;
+  padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .25s;display:flex;align-items:center;gap:6px;
+}
+.refresh-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(79,172,254,.4)}
+.refresh-btn.loading .ri{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.chat-toggle-btn{
+  background:linear-gradient(135deg,#f0a500,#e06000);
+  border:none;border-radius:8px;color:#000;
+  padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;
+  transition:all .25s;display:flex;align-items:center;gap:6px;
+  box-shadow:0 0 16px rgba(240,165,0,0.3);
+}
+.chat-toggle-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(240,165,0,.5)}
+
+/* ── MAIN ── */
+.main{padding:20px 24px;max-width:1640px;margin:0 auto}
+
+/* DATA SOURCE BANNER */
+.data-banner{
+  background:linear-gradient(135deg,rgba(240,165,0,0.06),rgba(79,172,254,0.04));
+  border:1px solid rgba(240,165,0,0.2);border-radius:12px;
+  padding:12px 20px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;
+  animation:fadeSlideDown .5s ease both;
+}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.data-banner-left{display:flex;align-items:center;gap:12px;font-size:12px}
+.data-banner-left strong{color:var(--accent-gold)}
+.data-banner-left span{color:var(--text-secondary)}
+.data-banner-right{font-size:10px;color:var(--text-muted);text-align:right;line-height:1.6}
+
+/* LAYER HEADER */
+.layer-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;margin-top:28px;
+  animation:fadeSlideDown .4s ease both;
+}
+.layer-badge{
+  background:linear-gradient(135deg,var(--accent-gold),#e06000);
+  color:#000;font-size:10px;font-weight:800;
+  padding:4px 10px;border-radius:12px;letter-spacing:1px;text-transform:uppercase;
+}
+.layer-title{font-size:16px;font-weight:700}
+.layer-subtitle{font-size:11px;color:var(--text-secondary);margin-left:auto}
+
+/* ── INDEX CARDS ── */
+.data-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+.index-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;position:relative;overflow:hidden;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  cursor:default;
+  opacity:0;transform:translateY(20px);
+}
+.index-card.revealed{opacity:1;transform:translateY(0)}
+.index-card:hover{border-color:var(--accent-blue);transform:translateY(-4px) scale(1.02);box-shadow:0 8px 32px rgba(79,172,254,0.15)}
+.index-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.index-card.green::before{background:linear-gradient(90deg,var(--accent-green),#00c853)}
+.index-card.red::before{background:linear-gradient(90deg,var(--accent-red),#c62828)}
+.index-card.gold::before{background:linear-gradient(90deg,var(--accent-gold),#e06000)}
+.index-card.blue::before{background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))}
+
+/* shimmer on hover */
+.index-card::after{
+  content:'';position:absolute;top:-50%;left:-60%;
+  width:40%;height:200%;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.05) 50%,transparent 60%);
+  transform:skewX(-15deg);
+  transition:left .5s ease;pointer-events:none;
+}
+.index-card:hover::after{left:120%}
+
+.index-name{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.index-value{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.index-change{font-size:12px;font-weight:700;margin-top:4px}
+.up{color:var(--accent-green)}.dn{color:var(--accent-red)}.neutral{color:var(--accent-gold)}
+
+/* ── SECTOR HEATMAP ── */
+.sector-heatmap{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:14px;
+  opacity:0;transform:translateY(20px);transition:all .5s ease .4s;
+}
+.sector-heatmap.revealed{opacity:1;transform:translateY(0)}
+.sector-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.sector-cell{
+  border-radius:8px;padding:10px 6px;text-align:center;
+  font-size:10px;font-weight:700;cursor:pointer;
+  transition:all .2s;border:1px solid transparent;
+}
+.sector-cell:hover{transform:scale(1.08);z-index:1;position:relative}
+.sector-hot{background:rgba(0,230,118,.2);color:var(--accent-green);border-color:rgba(0,230,118,.3)}
+.sector-warm{background:rgba(0,230,118,.1);color:#69f0ae;border-color:rgba(0,230,118,.15)}
+.sector-cold{background:rgba(255,61,87,.15);color:var(--accent-red);border-color:rgba(255,61,87,.2)}
+.sector-neutral{background:rgba(240,165,0,.1);color:var(--accent-gold);border-color:rgba(240,165,0,.2)}
+
+/* ── WATCHLIST ── */
+.watchlist-section{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:16px;margin-bottom:4px;
+  opacity:0;transform:translateY(20px);transition:all .5s ease .5s;
+}
+.watchlist-section.revealed{opacity:1;transform:translateY(0)}
+.watchlist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.wl-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+
+.ticker-input{
+  background:var(--bg-secondary);border:1px solid var(--border);
+  border-radius:8px;padding:7px 12px;color:var(--text-primary);font-size:13px;width:200px;
+  transition:border-color .2s;
+}
+.ticker-input:focus{outline:none;border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+.add-btn{
+  background:var(--accent-blue);border:none;border-radius:8px;color:#fff;
+  padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.add-btn:hover{background:#5bc0ff;transform:translateY(-1px)}
+
+.stock-table{width:100%;border-collapse:collapse}
+.stock-table th{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--text-muted);padding:6px 10px;text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.stock-table td{padding:10px 10px;font-size:13px;border-bottom:1px solid rgba(26,38,64,.5)}
+.stock-table tr:last-child td{border-bottom:none}
+.stock-table tbody tr{transition:background .15s;cursor:default}
+.stock-table tbody tr:hover td{background:rgba(79,172,254,.04)}
+
+.stage-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:10px;text-transform:uppercase}
+.stage-2{background:rgba(0,230,118,.12);color:var(--accent-green);border:1px solid rgba(0,230,118,.25)}
+.stage-1{background:rgba(240,165,0,.12);color:var(--accent-gold);border:1px solid rgba(240,165,0,.25)}
+.stage-34{background:rgba(255,61,87,.12);color:var(--accent-red);border:1px solid rgba(255,61,87,.25)}
+
+.rs-bar{height:5px;background:var(--border);border-radius:3px;width:72px;overflow:hidden}
+.rs-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-green));transition:width .8s ease}
+
+/* ── ADVISORY BOARD ── */
+.board-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px}
+
+.trader-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;cursor:pointer;position:relative;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  opacity:0;transform:translateY(24px);
+}
+.trader-card.revealed{opacity:1;transform:translateY(0)}
+.trader-card:hover{transform:translateY(-6px) scale(1.02);box-shadow:var(--shadow)}
+.trader-card.active{border-color:var(--accent-gold);box-shadow:0 0 28px rgba(240,165,0,.25)}
+.trader-card:hover .trader-avatar{transform:scale(1.1) rotate(-5deg)}
+
+.trader-header{padding:16px;position:relative}
+.trader-avatar{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  margin-bottom:10px;border:2px solid;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.trader-name{font-size:13px;font-weight:800;color:var(--text-primary)}
+.trader-style{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.trader-signal{
+  position:absolute;top:14px;right:14px;
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;
+}
+.signal-bull{background:rgba(0,230,118,.15);color:var(--accent-green);border:1px solid rgba(0,230,118,.35)}
+.signal-bear{background:rgba(255,61,87,.15);color:var(--accent-red);border:1px solid rgba(255,61,87,.35)}
+.signal-neutral{background:rgba(240,165,0,.15);color:var(--accent-gold);border:1px solid rgba(240,165,0,.35)}
+
+.conviction-bar{padding:0 16px 14px}
+.conviction-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:5px}
+.conv-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.conv-fill{height:100%;border-radius:3px;width:0;transition:width 1.2s cubic-bezier(.25,.46,.45,.94)}
+
+.trader-picks{padding:12px 16px;border-top:1px solid var(--border);background:var(--bg-secondary)}
+.picks-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.pick-chip{
+  display:inline-block;background:var(--bg-card2);border:1px solid var(--border);
+  border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;
+  margin:2px;color:var(--accent-blue);cursor:pointer;transition:all .15s;
+}
+.pick-chip:hover{background:rgba(79,172,254,.12);border-color:var(--accent-blue);transform:scale(1.05)}
+
+/* BOARD SUMMARY */
+.board-summary-bar{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+  opacity:0;transform:translateY(16px);transition:all .4s ease .3s;
+}
+.board-summary-bar.revealed{opacity:1;transform:translateY(0)}
+.bsi-value{font-size:22px;font-weight:800}
+.bsi-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* DETAIL PANEL */
+.detail-panel{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:24px;margin-bottom:16px;display:none;
+}
+.detail-panel.open{display:block;animation:panelReveal .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes panelReveal{from{opacity:0;transform:scale(.97) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.detail-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg-secondary);padding:4px;border-radius:10px;width:fit-content}
+.dtab{
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  color:var(--text-secondary);transition:all .2s;border:none;background:transparent;
+}
+.dtab.active{background:var(--bg-card2);color:var(--text-primary);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.tab-content{display:none}.tab-content.active{display:block;animation:fadeSlideDown .25s ease}
+
+.commentary-box{
+  background:var(--bg-secondary);border-left:3px solid var(--accent-gold);
+  border-radius:0 8px 8px 0;padding:16px;font-size:13px;line-height:1.9;
+  color:var(--text-secondary);margin-bottom:16px;
+}
+.commentary-box strong{color:var(--accent-gold)}
+
+.setup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.setup-item{
+  background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;
+  padding:14px;position:relative;overflow:hidden;
+  transition:all .2s;cursor:default;
+}
+.setup-item:hover{border-color:var(--accent-blue);background:rgba(79,172,254,.04);transform:translateY(-2px)}
+.setup-rank{position:absolute;top:8px;right:10px;font-size:32px;font-weight:900;color:rgba(255,255,255,.03)}
+.setup-ticker{font-size:15px;font-weight:800;color:var(--accent-blue)}
+.setup-name{font-size:11px;color:var(--text-secondary);margin-bottom:8px}
+.setup-meta{display:flex;gap:6px;flex-wrap:wrap}
+.meta-tag{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
+.meta-pattern{background:rgba(168,85,247,.12);color:var(--accent-purple);border:1px solid rgba(168,85,247,.25)}
+.meta-stage{background:rgba(0,230,118,.1);color:var(--accent-green);border:1px solid rgba(0,230,118,.2)}
+.meta-sector{background:rgba(0,212,255,.08);color:var(--accent-cyan);border:1px solid rgba(0,212,255,.18)}
+.setup-levels{margin-top:10px;display:flex;gap:12px;font-size:11px;flex-wrap:wrap}
+.level-item{color:var(--text-secondary)}
+.level-item span{color:var(--text-primary);font-weight:700}
+
+.alloc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.alloc-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.alloc-value{font-size:26px;font-weight:800;color:var(--accent-gold)}
+.alloc-label{font-size:11px;color:var(--text-secondary);margin-top:4px}
+
+/* ── CEO SECTION ── */
+.ceo-section{
+  background:linear-gradient(135deg,#0c1020,#160d2a,#0c1020);
+  border:1px solid rgba(240,165,0,.3);border-radius:16px;padding:28px;
+  position:relative;overflow:hidden;margin-bottom:80px;
+}
+.ceo-section::before{
+  content:'';position:absolute;top:-40%;left:-40%;width:180%;height:180%;
+  background:radial-gradient(ellipse at 50% 50%,rgba(240,165,0,.04) 0%,transparent 60%);
+  pointer-events:none;animation:ceoGlow 4s ease-in-out infinite;
+}
+@keyframes ceoGlow{0%,100%{opacity:.6}50%{opacity:1}}
+
+.ceo-top{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:start;margin-bottom:24px}
+.ceo-avatar{
+  width:72px;height:72px;
+  background:linear-gradient(135deg,var(--accent-gold),#b06000);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;
+  box-shadow:0 0 36px rgba(240,165,0,.35);flex-shrink:0;
+  animation:avatarFloat 3s ease-in-out infinite;
+}
+@keyframes avatarFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.ceo-profile h3{font-size:20px;font-weight:800;color:var(--accent-gold);margin-bottom:4px}
+.ceo-profile p{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}
+
+.ceo-regime{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 18px;text-align:center;min-width:150px;
+}
+.regime-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.regime-value{font-size:20px;font-weight:800;margin-top:4px}
+.regime-bull{color:var(--accent-green)}.regime-bear{color:var(--accent-red)}.regime-sideways{color:var(--accent-gold)}
+
+.ceo-verdict-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.verdict-box{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.verdict-title{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.verdict-commentary{font-size:13px;line-height:1.8;color:var(--text-secondary)}
+.verdict-commentary strong{color:var(--accent-gold)}
+
+.ceo-trades-table{width:100%;border-collapse:collapse;font-size:12px}
+.ceo-trades-table th{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);
+  padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg-secondary);
+}
+.ceo-trades-table td{padding:11px 12px;border-bottom:1px solid rgba(26,38,64,.5)}
+.ceo-trades-table tbody tr{transition:background .15s;cursor:default}
+.ceo-trades-table tbody tr:hover td{background:rgba(240,165,0,.03)}
+
+.verdict-go{display:inline-flex;align-items:center;gap:4px;background:rgba(0,230,118,.12);color:var(--accent-green);border:1px solid rgba(0,230,118,.28);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800}
+.verdict-nogo{display:inline-flex;align-items:center;gap:4px;background:rgba(255,61,87,.12);color:var(--accent-red);border:1px solid rgba(255,61,87,.28);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800}
+.verdict-watch{display:inline-flex;align-items:center;gap:4px;background:rgba(240,165,0,.12);color:var(--accent-gold);border:1px solid rgba(240,165,0,.28);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800}
+
+.grade-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;font-size:11px;font-weight:900;
+}
+.grade-aplus{background:linear-gradient(135deg,#ffd700,#e06000);color:#000}
+.grade-a{background:rgba(0,230,118,.18);color:var(--accent-green);border:1px solid rgba(0,230,118,.35)}
+.grade-bplus{background:rgba(79,172,254,.18);color:var(--accent-blue);border:1px solid rgba(79,172,254,.35)}
+.grade-rej{background:rgba(255,61,87,.12);color:var(--accent-red);border:1px solid rgba(255,61,87,.25)}
+
+/* ── CHAT PANEL ── */
+.chat-panel{
+  position:fixed;bottom:0;right:24px;width:var(--chat-width);
+  background:var(--bg-card);border:1px solid var(--border);border-bottom:none;
+  border-radius:16px 16px 0 0;z-index:500;
+  box-shadow:0 -8px 48px rgba(0,0,0,.6);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  transform:translateY(100%);
+  display:flex;flex-direction:column;
+  max-height:600px;
+}
+.chat-panel.open{transform:translateY(0)}
+
+.chat-header{
+  background:linear-gradient(135deg,#1a1030,#0f1a30);
+  border-bottom:1px solid var(--border);border-radius:16px 16px 0 0;
+  padding:14px 18px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;flex-shrink:0;
+}
+.chat-header-info{flex:1}
+.chat-header-info h4{font-size:14px;font-weight:800;color:var(--accent-gold)}
+.chat-header-info p{font-size:10px;color:var(--text-muted);margin-top:2px}
+.chat-minimize{
+  background:transparent;border:1px solid var(--border);border-radius:6px;
+  color:var(--text-secondary);width:28px;height:28px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:all .2s;
+}
+.chat-minimize:hover{background:var(--bg-card2);color:var(--text-primary)}
+
+.chat-target-bar{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  display:flex;gap:6px;flex-wrap:wrap;background:var(--bg-secondary);flex-shrink:0;
+}
+.chat-target-chip{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .2s;color:var(--text-secondary);
+}
+.chat-target-chip:hover{border-color:var(--accent-gold);color:var(--accent-gold)}
+.chat-target-chip.active{background:rgba(240,165,0,.12);border-color:var(--accent-gold);color:var(--accent-gold)}
+
+.chat-messages{
+  flex:1;overflow-y:auto;padding:16px;
+  display:flex;flex-direction:column;gap:12px;
+  scroll-behavior:smooth;
+}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.msg{max-width:88%;animation:msgPop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes msgPop{from{opacity:0;transform:scale(.92) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.msg-user{align-self:flex-end}
+.msg-bot{align-self:flex-start}
+
+.msg-bubble{
+  padding:10px 14px;border-radius:14px;font-size:12px;line-height:1.7;
+}
+.msg-user .msg-bubble{
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  color:#fff;border-radius:14px 14px 4px 14px;
+}
+.msg-bot .msg-bubble{
+  background:var(--bg-card2);border:1px solid var(--border);
+  color:var(--text-primary);border-radius:14px 14px 14px 4px;
+}
+.msg-bot .msg-bubble strong{color:var(--accent-gold)}
+.msg-bot .msg-bubble em{color:var(--accent-green);font-style:normal;font-weight:700}
+
+.msg-sender{font-size:10px;color:var(--text-muted);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.msg-sender-avatar{
+  width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;border:1px solid;
+}
+
+.typing-indicator{align-self:flex-start}
+.typing-indicator .msg-bubble{background:var(--bg-card2);border:1px solid var(--border);padding:10px 16px}
+.typing-dots{display:flex;gap:4px;align-items:center}
+.typing-dots span{
+  width:6px;height:6px;border-radius:50%;background:var(--text-muted);
+  animation:typingBounce 1.2s ease infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+.chat-quick-btns{
+  padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;
+  border-top:1px solid var(--border);background:var(--bg-secondary);flex-shrink:0;
+}
+.quick-btn{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:16px;padding:5px 10px;font-size:10px;font-weight:600;
+  color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.quick-btn:hover{border-color:var(--accent-blue);color:var(--accent-blue);background:rgba(79,172,254,.06)}
+
+.chat-input-row{
+  padding:12px 16px;border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;flex-shrink:0;
+  background:var(--bg-secondary);border-radius:0 0 0 0;
+}
+.chat-input{
+  flex:1;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:10px;padding:9px 14px;color:var(--text-primary);font-size:12px;
+  transition:border-color .2s;
+}
+.chat-input:focus{outline:none;border-color:var(--accent-gold)}
+.chat-send{
+  background:linear-gradient(135deg,var(--accent-gold),#e06000);
+  border:none;border-radius:10px;color:#000;
+  width:36px;height:36px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-weight:900;flex-shrink:0;
+}
+.chat-send:hover{transform:scale(1.08);box-shadow:0 4px 16px rgba(240,165,0,.4)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);
+  background:var(--bg-card2);border:1px solid var(--accent-green);
+  border-radius:10px;padding:10px 20px;font-size:13px;color:var(--accent-green);
+  opacity:0;transition:all .3s;z-index:600;white-space:nowrap;
+}
+.toast.show{transform:translate(-50%,0);opacity:1}
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(7,9,15,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:900;backdrop-filter:blur(6px);
+}
+.loading-overlay.hidden{display:none}
+.loader-ring{
+  width:64px;height:64px;border:3px solid var(--border);
+  border-top-color:var(--accent-gold);border-radius:50%;
+  animation:spin .7s linear infinite;margin-bottom:20px;
+}
+.loader-steps-list{
+  margin-top:16px;display:flex;flex-direction:column;gap:6px;width:320px;
+}
+.loader-step-item{
+  font-size:11px;padding:6px 12px;border-radius:8px;
+  background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text-muted);display:flex;align-items:center;gap:8px;
+  transition:all .3s;
+}
+.loader-step-item.active{border-color:var(--accent-gold);color:var(--accent-gold);background:rgba(240,165,0,.06)}
+.loader-step-item.done{border-color:rgba(0,230,118,.3);color:var(--accent-green);background:rgba(0,230,118,.06)}
+.step-icon{font-size:12px;width:16px;text-align:center}
+
+/* ── BOTTOM STRIP ── */
+.bottom-strip{
+  background:var(--bg-secondary);border-top:1px solid var(--border);
+  padding:10px 24px;display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;color:var(--text-muted);
+}
+
+/* RESPONSIVE */
+@media(max-width:1280px){
+  .board-grid{grid-template-columns:repeat(3,1fr)}
+  .data-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:900px){
+  .board-grid{grid-template-columns:repeat(2,1fr)}
+  .data-grid{grid-template-columns:repeat(2,1fr)}
+  .ceo-top{grid-template-columns:1fr}
+  .ceo-verdict-grid{grid-template-columns:1fr}
+  .chat-panel{width:100%;right:0;border-radius:16px 16px 0 0}
+  .sector-grid{grid-template-columns:repeat(4,1fr)}
+  .header{flex-wrap:wrap;gap:10px;padding:12px 16px}
+  .header-right{flex-wrap:wrap;gap:8px}
+  .data-stamp{display:none}
+  .logo-text p{display:none}
+  .main{padding:14px 14px}
+  .data-banner{flex-direction:column;gap:10px}
+  .data-banner-right{text-align:left}
+  .ceo-trades-table{font-size:11px}
+  .ceo-trades-table th,.ceo-trades-table td{padding:8px 8px}
+  .setup-grid{grid-template-columns:1fr}
+  .alloc-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
+  .board-grid{grid-template-columns:1fr 1fr}
+  .data-grid{grid-template-columns:1fr 1fr}
+  .sector-grid{grid-template-columns:repeat(3,1fr)}
+  .chat-quick-btns{display:none}
+  .header h1{font-size:15px}
+  .layer-title{font-size:14px}
+  .board-summary-bar{flex-wrap:wrap;gap:12px;justify-content:center}
+  .bsi-value{font-size:18px}
+}
+
+/* trader color themes */
+.minervini .trader-avatar{border-color:#f0a500;background:rgba(240,165,0,.1)}
+.minervini .conv-fill{background:linear-gradient(90deg,#f0a500,#e06000)}
+.weinstein .trader-avatar{border-color:#4facfe;background:rgba(79,172,254,.1)}
+.weinstein .conv-fill{background:linear-gradient(90deg,#4facfe,#00d4ff)}
+.oneil .trader-avatar{border-color:#00e676;background:rgba(0,230,118,.1)}
+.oneil .conv-fill{background:linear-gradient(90deg,#00e676,#69f0ae)}
+.jones .trader-avatar{border-color:#a855f7;background:rgba(168,85,247,.1)}
+.jones .conv-fill{background:linear-gradient(90deg,#a855f7,#d946ef)}
+.livermore .trader-avatar{border-color:#ff3d57;background:rgba(255,61,87,.1)}
+.livermore .conv-fill{background:linear-gradient(90deg,#ff3d57,#ff8a80)}
+</style>
+</head>
+<body>
+
+<!-- TICKER TAPE -->
+<div class="ticker-tape">
+  <div class="tape-track" id="tapeTrack"></div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-ring"></div>
+  <div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px">🧠 Alpha Command Activating</div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px">Pulling data · Running agents · Building verdicts</div>
+  <div class="loader-steps-list" id="loaderStepsList"></div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">
+      <h1>ALPHA COMMAND</h1>
+      <p>Multi-Agent Swing Trading Advisory · NSE / BSE</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="data-stamp">
+      📅 <span>Data as of:</span> <strong id="dataAsOf">—</strong>
+    </div>
+    <div class="market-pill">
+      <div class="dot-live"></div>
+      <span id="marketStatus">—</span>
+      <span style="color:var(--text-muted)">·</span>
+      <span id="currentTime">—</span>
+    </div>
+    <button class="refresh-btn" onclick="runFullAnalysis()" id="refreshBtn">
+      <span class="ri">↻</span> Run Analysis
+    </button>
+    <button class="chat-toggle-btn" onclick="toggleChat()">
+      💬 Ask Advisors
+    </button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- DATA BANNER -->
+  <div class="data-banner" id="dataBanner">
+    <div class="data-banner-left">
+      <span style="font-size:18px">📡</span>
+      <div>
+        <strong>Data Source</strong> —
+        <span id="dataBannerStatus"><strong style="color:var(--accent-gold)">⏳ Loading…</strong> checking for live data.json</span>
+      </div>
+    </div>
+    <div class="data-banner-right">
+      <div>📅 Data as of: <strong id="simDate" style="color:var(--accent-gold)">—</strong></div>
+      <div style="margin-top:2px">Auto-refreshed daily at 3:45 PM IST via GitHub Actions</div>
+    </div>
+  </div>
+
+  <!-- ── LAYER 1 ── -->
+  <div class="layer-header">
+    <div class="layer-badge">Layer 1</div>
+    <div class="layer-title">Market Intelligence — NSE / BSE</div>
+    <div class="layer-subtitle" id="lastUpdated">—</div>
+  </div>
+
+  <div class="data-grid" id="indexCards"></div>
+
+  <div class="sector-heatmap" id="sectorHeatmap">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px">🗺 Sectoral Rotation Heatmap</div>
+      <div style="font-size:10px;color:var(--text-muted)" id="sectorDate">—</div>
+    </div>
+    <div class="sector-grid" id="sectorGrid"></div>
+  </div>
+
+  <div class="watchlist-section" id="watchlistSection">
+    <div class="watchlist-header">
+      <div class="wl-title">📋 Watchlist Scanner
+        <span style="font-size:10px;color:var(--text-muted);font-weight:400">(Simulated yfinance · Ref: <span id="wlDate">—</span>)</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="ticker-input" id="tickerInput" placeholder="Add NSE ticker…" onkeydown="if(event.key==='Enter')addTicker()">
+        <button class="add-btn" onclick="addTicker()">+ Add</button>
+      </div>
+    </div>
+    <table class="stock-table">
+      <thead><tr>
+        <th>Ticker</th><th>LTP</th><th>Change</th>
+        <th>50D MA</th><th>200D MA</th><th>52W High</th>
+        <th>RS Rank</th><th>Stage</th><th>TT Score</th><th>Grade</th><th>Entry</th><th>Stop</th>
+      </tr></thead>
+      <tbody id="watchlistBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── LAYER 2 ── -->
+  <div class="layer-header" style="animation-delay:.1s">
+    <div class="layer-badge">Layer 2</div>
+    <div class="layer-title">Advisory Board — 5 Trading Legends</div>
+    <div class="layer-subtitle">Click any trader · Ask them questions via 💬</div>
+  </div>
+
+  <div class="board-summary-bar" id="boardSummaryBar">
+    <div class="bsi-item" style="text-align:center">
+      <div class="bsi-value up" id="bs-bullish">—</div>
+      <div class="bsi-label">Bullish</div>
+    </div>
+    <div class="bsi-item" style="text-align:center">
+      <div class="bsi-value neutral" id="bs-neutral">—</div>
+      <div class="bsi-label">Neutral</div>
+    </div>
+    <div class="bsi-item" style="text-align:center">
+      <div class="bsi-value dn" id="bs-bearish">—</div>
+      <div class="bsi-label">Bearish</div>
+    </div>
+    <div class="bsi-item" style="text-align:center">
+      <div class="bsi-value" style="color:var(--accent-blue)" id="bs-setups">—</div>
+      <div class="bsi-label">Total Setups</div>
+    </div>
+    <div class="bsi-item" style="text-align:center">
+      <div class="bsi-value" style="color:var(--accent-purple)" id="bs-conv">—</div>
+      <div class="bsi-label">Avg Conviction</div>
+    </div>
+  </div>
+
+  <div class="board-grid" id="boardGrid"></div>
+  <div class="detail-panel" id="detailPanel"></div>
+
+  <!-- ── LAYER 3 ── -->
+  <div class="layer-header" style="animation-delay:.2s">
+    <div class="layer-badge">Layer 3</div>
+    <div class="layer-title">CEO Command — Final Trade Verdicts</div>
+    <div class="layer-subtitle">Synthesises 5 advisors → GO / WATCH / NO-GO</div>
+  </div>
+
+  <div class="ceo-section" id="ceoSection"></div>
+
+</div>
+
+<!-- BOTTOM -->
+<div class="bottom-strip">
+  <span>⚠️ Educational only. Not SEBI-registered advice. All data is simulated. Do your own research.</span>
+  <span>Alpha Command v2.0 · Multi-Agent AI · NSE/BSE Focus</span>
+</div>
+
+<!-- CHAT PANEL -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header" onclick="toggleChatMinimize()">
+    <div style="font-size:22px">💬</div>
+    <div class="chat-header-info">
+      <h4>Ask the Advisory Board</h4>
+      <p>Direct line to all 5 traders + CEO · Ask anything</p>
+    </div>
+    <button class="chat-minimize" id="chatMinBtn">▼</button>
+  </div>
+
+  <div class="chat-target-bar">
+    <span style="font-size:10px;color:var(--text-muted);align-self:center;margin-right:4px">ASK:</span>
+    <div class="chat-target-chip active" data-target="all" onclick="selectTarget(this,'all')">🎯 All Board</div>
+    <div class="chat-target-chip" data-target="minervini" onclick="selectTarget(this,'minervini')">🎯 Minervini</div>
+    <div class="chat-target-chip" data-target="weinstein" onclick="selectTarget(this,'weinstein')">📊 Weinstein</div>
+    <div class="chat-target-chip" data-target="oneil" onclick="selectTarget(this,'oneil')">📈 O'Neil</div>
+    <div class="chat-target-chip" data-target="jones" onclick="selectTarget(this,'jones')">🌊 Jones</div>
+    <div class="chat-target-chip" data-target="livermore" onclick="selectTarget(this,'livermore')">🔮 Livermore</div>
+    <div class="chat-target-chip" data-target="ceo" onclick="selectTarget(this,'ceo')">👔 CEO</div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <div class="chat-quick-btns" id="quickBtns">
+    <div class="quick-btn" onclick="sendQuick('What is your top setup right now?')">Top setup?</div>
+    <div class="quick-btn" onclick="sendQuick('What is your macro view on Nifty?')">Nifty macro?</div>
+    <div class="quick-btn" onclick="sendQuick('Which sector should I focus on?')">Best sector?</div>
+    <div class="quick-btn" onclick="sendQuick('How much cash should I hold?')">Cash %?</div>
+    <div class="quick-btn" onclick="sendQuick('Is DIXON a buy right now?')">DIXON buy?</div>
+    <div class="quick-btn" onclick="sendQuick('What is your stop loss rule?')">Stop rule?</div>
+  </div>
+
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Ask any trader…" onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════════
+let DATA_REF_DATE = 'Simulated — run fetch_data.py for live EOD';
+let LIVE_DATA = null;        // populated from data.json if available
+let DATA_LOADED_LIVE = false;
+let chatOpen = false;
+let chatMinimized = false;
+let chatTarget = 'all';
+let activeTrader = null;
+let activeTab = {};
+
+// ═══════════════════════════════════════════════════════════
+//  MARKET DATA
+// ═══════════════════════════════════════════════════════════
+const INDICES = [
+  {name:'NIFTY 50',   val:22486, chg:+0.72, color:'green'},
+  {name:'SENSEX',     val:74119, chg:+0.68, color:'green'},
+  {name:'BANK NIFTY', val:48230, chg:+1.12, color:'green'},
+  {name:'MID150',     val:18940, chg:-0.23, color:'red'},
+  {name:'NIFTY IT',   val:35620, chg:+1.85, color:'green'},
+  {name:'INDIA VIX',  val:14.2,  chg:-5.4,  color:'gold'},
+];
+
+const SECTORS = [
+  {n:'IT/Tech',   p:'+2.1%',t:'hot'},   {n:'Defence', p:'+2.4%',t:'hot'},
+  {n:'Realty',    p:'+1.6%',t:'hot'},   {n:'Banking',  p:'+1.3%',t:'warm'},
+  {n:'Pharma',    p:'+0.8%',t:'warm'},  {n:'Chemical', p:'+1.1%',t:'warm'},
+  {n:'Auto',      p:'+0.5%',t:'warm'},  {n:'FMCG',     p:'+0.3%',t:'neutral'},
+  {n:'Media',     p:'+0.1%',t:'neutral'},{n:'Energy',  p:'-0.4%',t:'cold'},
+  {n:'Metals',    p:'-1.2%',t:'cold'},  {n:'Infra',    p:'-0.7%',t:'cold'},
+];
+
+const WATCHLIST = [
+  {t:'DIXON',      n:'Dixon Technologies',  ltp:11840,chg:+2.3,ma50:10920,ma200:9640, h52:13200,rs:91,stage:2,tt:8},
+  {t:'PERSISTENT', n:'Persistent Systems',  ltp:5820, chg:+3.1,ma50:5340, ma200:4620, h52:6100, rs:93,stage:2,tt:8},
+  {t:'INFY',       n:'Infosys',             ltp:1492, chg:+2.1,ma50:1430, ma200:1380, h52:1800, rs:79,stage:2,tt:8},
+  {t:'PGEL',       n:'PG Electroplast',     ltp:748,  chg:+1.8,ma50:692,  ma200:580,  h52:820,  rs:88,stage:2,tt:8},
+  {t:'HDFCBANK',   n:'HDFC Bank',           ltp:1678, chg:+1.4,ma50:1612, ma200:1540, h52:1820, rs:74,stage:2,tt:7},
+  {t:'LLENTLTD',   n:'Lloyds Engineering',  ltp:56.4, chg:+0.9,ma50:51.2, ma200:42.1, h52:65,   rs:82,stage:2,tt:7},
+  {t:'KALYANKJIL', n:'Kalyan Jewellers',    ltp:428,  chg:-0.6,ma50:445,  ma200:390,  h52:520,  rs:68,stage:1,tt:5},
+  {t:'MOTHERSON',  n:'Motherson Sumi',      ltp:142,  chg:-1.2,ma50:155,  ma200:148,  h52:210,  rs:42,stage:3,tt:3},
+];
+
+// ═══════════════════════════════════════════════════════════
+//  TRADERS
+// ═══════════════════════════════════════════════════════════
+const TRADERS = [
+  {
+    id:'minervini',name:'Mark Minervini',emoji:'🎯',style:'SEPA · VCP · Stage 2',
+    signal:'BULL',conviction:88,cssClass:'minervini',color:'#f0a500',
+    picks:['DIXON','PERSISTENT','INFY'],
+    macro:`<strong>Market Regime: BULLISH CONFIRMED.</strong> Nifty is in a clear Stage 2 uptrend. The 200-DMA is sloping upward and we're trading above all key moving averages. VIX at 14.2 tells me the market is complacent — that's fine when the trend is up.<br><br><strong>My rule:</strong> When the generals lead (IT, Defence), the soldiers follow. I'm 80% deployed. I want VCPs tight — less than 8% depth — on stocks with RS above 85. Don't chase. Wait for the pivot.`,
+    sectorRotation:`<strong>Rotating INTO:</strong> IT/Tech (+2.1%), Defence (+2.4%), Realty (+1.6%). That's where smart money is going.<br><strong>Rotating OUT OF:</strong> Metals, Energy, Infra. All showing relative weakness. I want to be where institutions are buying, not selling.`,
+    topSetups:[
+      {t:'DIXON',     n:'Dixon Technologies',  pat:'VCP (3C)',    stage:'Stage 2',sec:'Electronics',entry:'₹12,100',stop:'₹11,200',tgt:'₹13,800',grade:'A+'},
+      {t:'PERSISTENT',n:'Persistent Systems',  pat:'Flat Base',  stage:'Stage 2',sec:'IT',          entry:'₹5,950', stop:'₹5,480', tgt:'₹7,000', grade:'A+'},
+      {t:'INFY',      n:'Infosys',             pat:'VCP (2C)',    stage:'Stage 2',sec:'IT',          entry:'₹1,530', stop:'₹1,420',tgt:'₹1,780', grade:'A'},
+      {t:'PGEL',      n:'PG Electroplast',     pat:'VCP (3C)',    stage:'Stage 2',sec:'Electronics',entry:'₹770',   stop:'₹700',  tgt:'₹920',   grade:'A'},
+      {t:'HDFCBANK',  n:'HDFC Bank',           pat:'Cup & Handle',stage:'Stage 2',sec:'Banking',    entry:'₹1,710', stop:'₹1,600',tgt:'₹1,980', grade:'B+'},
+      {t:'LLENTLTD',  n:'Lloyds Engg',         pat:'VCP (2C)',    stage:'Stage 2',sec:'Infra',      entry:'₹58',    stop:'₹53',   tgt:'₹68',    grade:'B+'},
+    ],
+    alloc:{cash:'20%',deployed:'80%',maxPer:'5%'},
+    chatResponses:{
+      default:[
+        "Cut your losses fast. Never let a 7% loss become a 30% loss. That's the #1 rule that separates winners from losers.",
+        "You don't need 100 stocks. You need 3-5 perfect setups. Concentration in quality beats diversification in mediocrity every time.",
+        "The VCP is telling you something: the stock is tightening, volatility is contracting, smart money is accumulating. That's your signal."
+      ],
+      top_setup:"My #1 setup right now is <em>DIXON</em> — A+ grade, VCP with 3 contractions, Stage 2 confirmed, RS at 91. Entry at ₹12,100 on volume breakout. Stop: ₹11,200. Target: ₹13,800. That's a 2.8R trade. Don't size up more than 5% of capital.",
+      nifty_macro:"Nifty is in Stage 2. 200-DMA rising, all key MAs stacked correctly. VIX at 14.2 is calm. I'm 80% deployed. The only question is whether you have the discipline to hold winners and cut losers fast.",
+      best_sector:"IT and Defence are the generals of this market. When generals make new highs, you follow them — not the laggards. Sector rotation is telling you: buy IT, avoid Metals.",
+      cash:"I'm keeping 20% cash. In a bull market, less cash = more gains. But I always want a reserve in case the A+ setup appears when I'm fully deployed.",
+      dixon:"DIXON is an A+ setup. VCP confirmed, Stage 2, RS 91, sector leadership. Buy the pivot breakout at ₹12,100 on 2x+ volume. Stop: ₹11,200. No breakout = no entry. Simple.",
+      stop_rule:"My stop rule is absolute: pre-decide before market opens, place it GTC, never move it down. 7-10% maximum loss per trade. If it stops you out, it stops you out. Capital preservation first."
+    }
+  },
+  {
+    id:'weinstein',name:'Stan Weinstein',emoji:'📊',style:'Stage Analysis · Volume',
+    signal:'BULL',conviction:76,cssClass:'weinstein',color:'#4facfe',
+    picks:['HDFCBANK','INFY','PGEL'],
+    macro:`<strong>Stage Analysis: Nifty is solidly in Stage 2.</strong> The 30-week MA is rising. We had a perfect Stage 1 base from mid-2023, breakout in late 2023, and now we're in the markup phase. History says Stage 2 lasts 18-36 months. <br><br><strong>Volume tells all:</strong> Up weeks consistently higher volume than down weeks — that's institutional accumulation. Don't fight this tape.`,
+    sectorRotation:`<strong>Stage 2 Leaders:</strong> IT, Banking, Realty. <strong>Stage 1 (Watch):</strong> Pharma, Chemicals — quiet accumulation. <strong>Stage 3/4 (Avoid):</strong> Metals, Energy. Once a sector enters Stage 3, recovery takes 12-18 months.`,
+    topSetups:[
+      {t:'HDFCBANK',  n:'HDFC Bank',          pat:'Stage 2 Breakout',stage:'Stage 2',sec:'Banking',    entry:'₹1,720',stop:'₹1,580',tgt:'₹2,050',grade:'A'},
+      {t:'INFY',      n:'Infosys',             pat:'30-Wk MA Hold',  stage:'Stage 2',sec:'IT',          entry:'₹1,510',stop:'₹1,400',tgt:'₹1,750',grade:'A'},
+      {t:'PGEL',      n:'PG Electroplast',     pat:'Stage 2 Early',  stage:'Stage 2',sec:'Electronics',entry:'₹760',  stop:'₹695', tgt:'₹900',  grade:'A+'},
+      {t:'DIXON',     n:'Dixon Technologies',  pat:'Stage 2 Advance',stage:'Stage 2',sec:'Electronics',entry:'₹12,200',stop:'₹11,100',tgt:'₹14,000',grade:'A'},
+      {t:'PERSISTENT',n:'Persistent Systems',  pat:'High Tight Flag',stage:'Stage 2',sec:'IT',          entry:'₹6,000',stop:'₹5,500',tgt:'₹7,200',grade:'A+'},
+      {t:'LLENTLTD',  n:'Lloyds Engg',         pat:'Stage 2 Base',   stage:'Stage 2',sec:'Infra',      entry:'₹57',   stop:'₹51',  tgt:'₹70',   grade:'B+'},
+    ],
+    alloc:{cash:'25%',deployed:'75%',maxPer:'6%'},
+    chatResponses:{
+      default:[
+        "It's not about what a stock has done — it's about what stage it's in. Stage 2 = buy. Stage 4 = don't touch.",
+        "Volume doesn't lie. Stocks that break out on 3x average volume with institutional participation — those are the ones that run 50-100%.",
+        "The 30-week MA is your North Star. Stocks above rising 30-week MAs are in Stage 2. Below = avoid."
+      ],
+      top_setup:"My top pick is <em>PGEL</em> — Stage 2 early entry, volume drying up beautifully on the base. Entry ₹760, stop ₹695, target ₹900. Also love PERSISTENT — High Tight Flag pattern on Stage 2.",
+      nifty_macro:"Nifty is in Stage 2 markup. 30-week MA is rising. Volume pattern is healthy. This is the phase where most of the money is made. Stay long.",
+      best_sector:"IT and Electronics are in Stage 2 leadership. Banking is participating. Metals and Energy are in Stage 3/4 — the graveyard. Stay away from them.",
+      cash:"I'm 75% deployed. Stage 2 markets deserve committed capital. The 25% cash is for new setups that emerge.",
+      dixon:"DIXON is a Stage 2 leader. My entry is slightly higher — ₹12,200 — because I want to confirm it's above the prior pivot. Target ₹14,000. Stop ₹11,100.",
+      stop_rule:"If a stock closes below its 30-week MA on above-average volume — that's your exit signal. No arguments, no hoping. Stage 2 is over."
+    }
+  },
+  {
+    id:'oneil',name:"William O'Neil",emoji:'📈',style:'CANSLIM · Fundamentals',
+    signal:'BULL',conviction:82,cssClass:'oneil',color:'#00e676',
+    picks:['PERSISTENT','DIXON','KALYANKJIL'],
+    macro:`<strong>CANSLIM M = Market Confirmed Uptrend.</strong> Nifty volume on up days exceeds down days. This is Day 4+ of a confirmed rally. My IBD-style market school says: <em>Invest fully in this environment.</em><br><br>What I'm watching: EPS growth acceleration in IT and Electronics. PERSISTENT: 45% EPS growth. DIXON: 60% EPS growth. These are the C and A of CANSLIM flashing green.`,
+    sectorRotation:`<strong>Leadership Groups (Buy):</strong> IT Services, Electronics Manufacturing (PLI), Defence. Superior EPS growth + RS.<br><strong>Laggard Groups (Avoid):</strong> PSU Banks, Metals, Commodities. Poor EPS growth, weak RS — wrong side of the trade.`,
+    topSetups:[
+      {t:'PERSISTENT',n:'Persistent Systems',  pat:'Cup w/ Handle',stage:'Stage 2',sec:'IT',          entry:'₹5,980',stop:'₹5,550',tgt:'₹7,100',grade:'A+'},
+      {t:'DIXON',     n:'Dixon Technologies',  pat:'Double Bottom', stage:'Stage 2',sec:'Electronics',entry:'₹12,050',stop:'₹11,200',tgt:'₹14,200',grade:'A+'},
+      {t:'KALYANKJIL',n:'Kalyan Jewellers',    pat:'Flat Base',     stage:'Stage 1→2',sec:'Retail',  entry:'₹445',  stop:'₹400', tgt:'₹530',  grade:'B+'},
+      {t:'INFY',      n:'Infosys',             pat:'Handle Pullback',stage:'Stage 2',sec:'IT',         entry:'₹1,520',stop:'₹1,430',tgt:'₹1,800',grade:'A'},
+      {t:'PGEL',      n:'PG Electroplast',     pat:'Tight Area',    stage:'Stage 2',sec:'Electronics',entry:'₹765',  stop:'₹705', tgt:'₹910',  grade:'A'},
+      {t:'HDFCBANK',  n:'HDFC Bank',           pat:'Flat Base',     stage:'Stage 2',sec:'Banking',    entry:'₹1,700',stop:'₹1,600',tgt:'₹1,960',grade:'B+'},
+    ],
+    alloc:{cash:'15%',deployed:'85%',maxPer:'7%'},
+    chatResponses:{
+      default:[
+        "EPS growth is the fuel. Technical pattern is the trigger. You need both. A great chart with bad earnings is a trap.",
+        "Buy the market leaders — the #1 or #2 stock in the leading group. Never buy the second-best. PERSISTENT over any lagging IT stock.",
+        "The base is the launchpad. The longer and tighter the base, the bigger the eventual move. Be patient."
+      ],
+      top_setup:"<em>PERSISTENT</em> — Cup with Handle, 45% EPS growth, RS 93, Stage 2. That's a CANSLIM A+ by every criterion. Entry ₹5,980, stop ₹5,550, target ₹7,100. This is the #1 stock in the #1 sector.",
+      nifty_macro:"Market is in a Confirmed Uptrend. Day 4+. Volume pattern healthy. My rule: in a confirmed uptrend, be 85-100% invested in leaders. This is not the time to be in cash.",
+      best_sector:"IT Services and Electronics Manufacturing are the leadership groups. PERSISTENT and DIXON are the leaders within those groups. Buy the leaders, not the followers.",
+      cash:"15% cash. In a Confirmed Uptrend, cash is a drag. I want to be maximally deployed in the best ideas.",
+      dixon:"DIXON has 60% EPS growth, RS 91, and a Double Bottom base. A+ CANSLIM setup. Entry ₹12,050. This stock can double from here in 12-18 months if the market stays healthy.",
+      stop_rule:"Cut every loss at 7-8%. Maximum. No exceptions. The 8% sell rule protects you from the rare stock that goes to zero."
+    }
+  },
+  {
+    id:'jones',name:'Paul Tudor Jones',emoji:'🌊',style:'Macro · Momentum · Risk',
+    signal:'NEUTRAL',conviction:62,cssClass:'jones',color:'#a855f7',
+    picks:['HDFCBANK','INFY','LLENTLTD'],
+    macro:`<strong>Macro lens: India is the cleanest shirt in a dirty laundry basket.</strong> US slowdown, China stimulus fatigue, EU stagnation — India's domestic consumption + capex cycle is intact.<br><br><strong>But I'm cautious.</strong> DXY and crude oil are my key monitors. Crude above $90 is a headwind. Currently $82 — manageable. Fed staying higher for longer could trigger EM outflows. I'm only 60% deployed. Preserve optionality.`,
+    sectorRotation:`<strong>Macro-driven allocation:</strong> Financials (rate cycle peaking = tailwind), IT (dollar earnings hedge), Domestic consumption.<br><strong>Underweighting:</strong> Global commodity exposure, export-dependent sectors until DXY clarity. Domestic > Export right now.`,
+    topSetups:[
+      {t:'HDFCBANK',  n:'HDFC Bank',          pat:'Macro Support',   stage:'Stage 2',sec:'Banking',    entry:'₹1,700',stop:'₹1,560',tgt:'₹2,100',grade:'A'},
+      {t:'INFY',      n:'Infosys',             pat:'Trend Cont.',     stage:'Stage 2',sec:'IT',          entry:'₹1,500',stop:'₹1,380',tgt:'₹1,820',grade:'A'},
+      {t:'LLENTLTD',  n:'Lloyds Engg',         pat:'Momentum Entry',  stage:'Stage 2',sec:'Infra',      entry:'₹57.5', stop:'₹52',  tgt:'₹72',   grade:'B+'},
+      {t:'PGEL',      n:'PG Electroplast',     pat:'Breakout Play',   stage:'Stage 2',sec:'Electronics',entry:'₹775',  stop:'₹710', tgt:'₹940',  grade:'B+'},
+    ],
+    alloc:{cash:'40%',deployed:'60%',maxPer:'4%'},
+    chatResponses:{
+      default:[
+        "5:1 risk-reward. I never trade anything less. If the risk-reward isn't there, I walk away. The market will always give you another opportunity.",
+        "Macro is the tide. Technical is the wave. You want to swim with both. Don't fight the tide — even the best surfer can't surf against it.",
+        "I'm most cautious when everyone is most bullish. That's when tails are fat and risks are underpriced."
+      ],
+      top_setup:"I like <em>HDFCBANK</em> from a macro perspective — financials benefit as India's rate cycle peaks. Risk is tight. Also watching INFY as an IT play with dollar earnings hedge. Both give me 5R+ potential.",
+      nifty_macro:"India is the cleanest story globally. But I'm only 60% deployed. Crude and DXY need to cooperate. If crude goes above $90, I cut exposure immediately. Preserve optionality.",
+      best_sector:"Financials and IT for macro reasons. Domestic consumption for structural reasons. Avoid anything linked to global commodity cycles — that's where the risk is right now.",
+      cash:"40% cash. I know that sounds conservative when others are 80-85% deployed. But this is not about being bearish — it's about having firepower when the perfect setup arrives.",
+      dixon:"DIXON is a great technical setup, but for me the macro angle isn't as compelling as HDFCBANK or INFY. I'd put it on my watchlist, not my buy list today.",
+      stop_rule:"Never risk more than 1% of equity on a single trade. That's not a preference — it's an absolute rule. Position size is everything."
+    }
+  },
+  {
+    id:'livermore',name:'Jesse Livermore',emoji:'🔮',style:'Pivotal Points · Tape Reading',
+    signal:'BULL',conviction:79,cssClass:'livermore',color:'#ff3d57',
+    picks:['DIXON','PERSISTENT','PGEL'],
+    macro:`<strong>The market is telling us something important: the leaders are leading again.</strong> IT stocks hitting new highs on volume. Defence stocks breaking out. When the strongest stocks in the strongest sectors make new highs — you follow. Period.<br><br><strong>I've been watching pivotal points.</strong> PERSISTENT broke its 6-month pivot at ₹5,800 last week on 3x volume. That's your signal. The tape doesn't lie.`,
+    sectorRotation:`<strong>Follow the leaders:</strong> IT and Defence are the generals. Where generals go, the army follows. Smart money flows from PSU metals and energy into high-growth tech and manufacturing. Follow the volume.`,
+    topSetups:[
+      {t:'DIXON',     n:'Dixon Technologies',  pat:'Pivotal Point BO',stage:'Stage 2',sec:'Electronics',entry:'₹12,150',stop:'₹11,000',tgt:'₹15,000',grade:'A+'},
+      {t:'PERSISTENT',n:'Persistent Systems',  pat:'Key Pivot Break',  stage:'Stage 2',sec:'IT',          entry:'₹5,900', stop:'₹5,400', tgt:'₹7,500', grade:'A+'},
+      {t:'PGEL',      n:'PG Electroplast',     pat:'Tape Strength',    stage:'Stage 2',sec:'Electronics',entry:'₹755',   stop:'₹690',  tgt:'₹950',   grade:'A'},
+      {t:'INFY',      n:'Infosys',             pat:'Follow Through',   stage:'Stage 2',sec:'IT',          entry:'₹1,525', stop:'₹1,400',tgt:'₹1,900', grade:'A'},
+      {t:'LLENTLTD',  n:'Lloyds Engg',         pat:'Breakout Setup',   stage:'Stage 2',sec:'Infra',      entry:'₹58.5',  stop:'₹53',   tgt:'₹75',    grade:'B+'},
+    ],
+    alloc:{cash:'30%',deployed:'70%',maxPer:'5%'},
+    chatResponses:{
+      default:[
+        "The market is never wrong. Opinions often are. I follow price and volume — not stories, not analysts, not tips.",
+        "A stock that refuses to go down in a down market is telling you something important. That strength is your signal.",
+        "Never fight the tape. Never argue with the market. When the pivotal point breaks on volume — you act. No hesitation."
+      ],
+      top_setup:"<em>DIXON</em> — pivotal point breakout on massive volume. The tape confirmed it. My target is ₹15,000. Stop at ₹11,000 — below the last meaningful pivot low. This is a 3R+ trade minimum.",
+      nifty_macro:"The tape is bullish. New highs in IT and Defence. The leaders are leading. That's all I need to know. I don't need macro theories when the tape tells me the truth.",
+      best_sector:"Follow the volume flow. IT and Electronics are seeing institutional volume. Metals are seeing distribution. It's that simple — follow where the big money is going.",
+      cash:"30% cash. In a confirmed tape uptrend, I want to be 70% deployed. The 30% is for the inevitable shakeouts — those are buying opportunities.",
+      dixon:"DIXON's tape is the cleanest I've seen. Pivotal point break on 3x volume. Strong close. No distribution. This is how the big moves start. Entry ₹12,150. Do not miss the breakout.",
+      stop_rule:"The pivotal point defines the stop. If price breaks below the last significant pivot on volume — you're out. The tape has reversed. No sentiment, no hope."
+    }
+  }
+];
+
+const CEO = {
+  regime:'BULLISH',
+  commentary:`<strong>Board consensus is clear: 4 of 5 advisors are BULLISH.</strong> Paul Tudor Jones is the lone voice of caution — and that's healthy. His macro concerns about DXY and crude are valid hedges.<br><br>
+  My final read: <strong>Deploy 70% of capital across GO trades.</strong> Keep 30% as dry powder — not because I'm bearish, but because the best setups in a bull market come to those with ammo left.<br><br>
+  <strong>DIXON and PERSISTENT appear on every board member's list.</strong> When 5 legendary traders with completely different methodologies all land on the same stock — that's not coincidence. That's institutional signal.`,
+  trades:[
+    {t:'DIXON',      n:'Dixon Technologies',  grade:'A+',advisors:5,entry:'₹12,100',stop:'₹11,100',tgt:'₹14,200',rr:'2.8R',sz:'₹2.5L',verdict:'GO',    rat:'5/5 advisors. VCP confirmed. Stage 2. IT/Electronics leadership.'},
+    {t:'PERSISTENT', n:'Persistent Systems',  grade:'A+',advisors:5,entry:'₹5,950', stop:'₹5,480', tgt:'₹7,000', rr:'2.2R',sz:'₹2.5L',verdict:'GO',    rat:'5/5 advisors. Strong EPS growth. Cup & Handle on weekly.'},
+    {t:'PGEL',       n:'PG Electroplast',     grade:'A', advisors:4,entry:'₹770',   stop:'₹700',   tgt:'₹920',   rr:'2.1R',sz:'₹2L',  verdict:'GO',    rat:'4/5 advisors. VCP 3C. PLI beneficiary. Stage 2 early.'},
+    {t:'INFY',       n:'Infosys',             grade:'A', advisors:4,entry:'₹1,530', stop:'₹1,410', tgt:'₹1,800', rr:'2.25R',sz:'₹2L', verdict:'GO',    rat:'4/5 advisors. IT sector leadership. Earnings visibility.'},
+    {t:'HDFCBANK',   n:'HDFC Bank',           grade:'B+',advisors:3,entry:'₹1,710', stop:'₹1,590', tgt:'₹1,980', rr:'2.25R',sz:'₹1.5L',verdict:'WATCH',rat:'3/5 advisors. Good setup but macro headwind per Jones.'},
+    {t:'LLENTLTD',   n:'Lloyds Engineering',  grade:'B+',advisors:3,entry:'₹58',    stop:'₹53',    tgt:'₹70',    rr:'2.4R',sz:'₹1L',  verdict:'WATCH', rat:'3/5 advisors. Small cap, higher volatility. Wait for volume.'},
+    {t:'KALYANKJIL', n:'Kalyan Jewellers',    grade:'B+',advisors:1,entry:'₹445',   stop:'₹400',   tgt:'₹530',   rr:'1.9R',sz:'₹1L',  verdict:'WATCH', rat:"Only O'Neil sees the setup. Needs broader consensus."},
+    {t:'MOTHERSON',  n:'Motherson Sumi',      grade:'REJ',advisors:0,entry:'—',      stop:'—',      tgt:'—',      rr:'—',   sz:'—',    verdict:'NO-GO', rat:'Stage 3 decline. Below all MAs. 0 advisors support this.'},
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHAT RESPONSE ENGINE
+// ═══════════════════════════════════════════════════════════
+function getResponseKey(q) {
+  const lq = q.toLowerCase();
+  if(/top setup|best trade|#1|number one/.test(lq)) return 'top_setup';
+  if(/nifty|sensex|market|macro|regime|trend/.test(lq)) return 'nifty_macro';
+  if(/sector|rotation|industry|group/.test(lq)) return 'best_sector';
+  if(/cash|deploy|capital|allocation/.test(lq)) return 'cash';
+  if(/dixon/.test(lq)) return 'dixon';
+  if(/stop|loss|exit|cut/.test(lq)) return 'stop_rule';
+  return 'default';
+}
+
+function getTraderResponse(traderId, question) {
+  const trader = TRADERS.find(t => t.id === traderId);
+  if(!trader) return null;
+  const key = getResponseKey(question);
+  const resp = trader.chatResponses[key];
+  if(typeof resp === 'string') return resp;
+  return resp[Math.floor(Math.random() * resp.length)];
+}
+
+function getCEOResponse(question) {
+  const lq = question.toLowerCase();
+  if(/top|best|#1/.test(lq))
+    return `<strong>CEO Verdict:</strong> <em>DIXON</em> and <em>PERSISTENT</em> are my top two — every single advisor agrees on both. A+ grades, strong fundamentals, technical setups confirmed. Full position. Entry on volume breakout.`;
+  if(/nifty|market|macro/.test(lq))
+    return `<strong>CEO View:</strong> 4 of 5 advisors are bullish on the market. Market regime is <em>BULLISH CONFIRMED</em>. I'm deploying 70% of capital across GO trades. 30% dry powder preserved for the unexpected.`;
+  if(/sector/.test(lq))
+    return `<strong>CEO Sector Call:</strong> IT and Electronics are the unanimous sector leaders across all 5 advisors. Defence is the surprise winner. Avoid Metals, Energy, Infra — board consensus to stay away.`;
+  if(/cash/.test(lq))
+    return `<strong>CEO Capital Plan:</strong> ₹10L deployed in GO trades (DIXON, PERSISTENT, PGEL, INFY). ₹35L in cash reserve. Deployment is staged — we add only when setups confirm on volume.`;
+  if(/dixon/.test(lq))
+    return `<strong>CEO on DIXON:</strong> GO. All 5 advisors support it. A+ grade. Entry ₹12,100. Stop ₹11,100. Target ₹14,200. Position size ₹2.5L. This is our highest conviction trade. Execute.`;
+  return `<strong>CEO Final Word:</strong> Data says deploy in leaders, avoid laggards, keep 30% powder dry. The board has spoken. Now execute with discipline — entry, stop, target pre-set before market opens.`;
+}
+
+function getAllBoardResponse(question) {
+  const bits = TRADERS.map(t => {
+    const resp = getTraderResponse(t.id, question);
+    return `<strong>${t.emoji} ${t.name}:</strong> ${resp}`;
+  }).join('<br><br>');
+  return bits;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CHAT UI
+// ═══════════════════════════════════════════════════════════
+function toggleChat() {
+  chatOpen = !chatOpen;
+  chatMinimized = false;
+  const panel = document.getElementById('chatPanel');
+  if(chatOpen) {
+    panel.classList.add('open');
+    document.getElementById('chatMinBtn').textContent = '▼';
+    if(document.getElementById('chatMessages').children.length === 0) showWelcomeMsg();
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function toggleChatMinimize() {
+  chatMinimized = !chatMinimized;
+  const panel = document.getElementById('chatPanel');
+  const btn = document.getElementById('chatMinBtn');
+  if(chatMinimized) {
+    panel.style.maxHeight = '52px';
+    panel.style.overflow = 'hidden';
+    btn.textContent = '▲';
+  } else {
+    panel.style.maxHeight = '600px';
+    panel.style.overflow = '';
+    btn.textContent = '▼';
+  }
+}
+
+function showWelcomeMsg() {
+  const greeting = `👋 <strong>Welcome, Gaurav!</strong><br><br>I'm your Alpha Command advisory interface. You can ask me — or any specific trader — anything about:<br>• Market outlook & macro<br>• Specific stock setups<br>• Entry, stop, target levels<br>• Capital allocation<br>• Risk management rules<br><br>Select a trader above or ask the full board at once. What's your first question?`;
+  appendBotMessage('🤖 Alpha Command', greeting, '#f0a500');
+}
+
+function selectTarget(el, target) {
+  document.querySelectorAll('.chat-target-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  chatTarget = target;
+  updateQuickBtns(target);
+}
+
+function updateQuickBtns(target) {
+  const extra = {
+    minervini:["What's a VCP?","SEPA rules?","When do you sell?"],
+    weinstein:["Define Stage 2","Volume rules?","When Stage 3?"],
+    oneil:["Explain CANSLIM","What RS rank?","Cup & handle?"],
+    jones:["Macro risks?","DXY impact?","5:1 R:R rule?"],
+    livermore:["Pivotal point?","Tape reading?","When to act?"],
+    ceo:["Final portfolio?","Total deployed?","Top conviction?"],
+    all:["Top setup?","Nifty macro?","Best sector?","Cash %?","DIXON buy?","Stop rule?"]
+  };
+  const btns = extra[target] || extra.all;
+  document.getElementById('quickBtns').innerHTML = btns.map(b =>
+    `<div class="quick-btn" onclick="sendQuick('${b}')">${b}</div>`).join('');
+}
+
+function sendQuick(q) {
+  document.getElementById('chatInput').value = q;
+  sendChat();
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if(!q) return;
+  input.value = '';
+
+  appendUserMessage(q);
+  showTyping();
+
+  const delay = 800 + Math.random() * 600;
+  setTimeout(() => {
+    removeTyping();
+    let resp, sender, color;
+
+    if(chatTarget === 'ceo') {
+      resp = getCEOResponse(q);
+      sender = '👔 CEO — Final Authority';
+      color = '#f0a500';
+    } else if(chatTarget === 'all') {
+      resp = getAllBoardResponse(q);
+      sender = '🎯 Advisory Board — All 5 Legends';
+      color = '#4facfe';
+    } else {
+      const trader = TRADERS.find(t => t.id === chatTarget);
+      resp = getTraderResponse(chatTarget, q);
+      sender = `${trader.emoji} ${trader.name}`;
+      color = trader.color;
+    }
+    appendBotMessage(sender, resp, color);
+  }, delay);
+}
+
+function appendUserMessage(text) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.innerHTML = `<div class="msg-bubble">${escHtml(text)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendBotMessage(sender, html, color) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-bot';
+  div.innerHTML = `
+    <div class="msg-sender">
+      <span class="msg-sender-avatar" style="border-color:${color};color:${color};background:${color}22">${sender.slice(0,2)}</span>
+      <span style="color:${color};font-weight:700">${sender}</span>
+    </div>
+    <div class="msg-bubble">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-bot typing-indicator';
+  div.id = 'typingIndicator';
+  div.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if(el) el.remove();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — TICKER TAPE
+// ═══════════════════════════════════════════════════════════
+function renderTape() {
+  const items = [
+    ...INDICES.map(i => ({n:i.name, v:i.val, c:i.chg})),
+    ...WATCHLIST.map(s => ({n:s.t, v:'₹'+s.ltp.toLocaleString('en-IN'), c:s.chg}))
+  ];
+  const html = [...items,...items].map(i => {
+    const up = i.c >= 0;
+    return `<div class="tape-item">
+      <span class="tape-name">${i.n}</span>
+      <span class="tape-val">${typeof i.v === 'number' ? i.v.toLocaleString('en-IN') : i.v}</span>
+      <span class="tape-chg ${up?'up':'dn'}">${up?'▲':'▼'}${Math.abs(i.c)}%</span>
+    </div>`;
+  }).join('');
+  document.getElementById('tapeTrack').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — INDICES
+// ═══════════════════════════════════════════════════════════
+function renderIndices() {
+  const c = document.getElementById('indexCards');
+  c.innerHTML = INDICES.map((idx, i) => {
+    const up = idx.chg >= 0;
+    return `<div class="index-card ${idx.color}" style="transition-delay:${i*80}ms">
+      <div class="index-name">${idx.name}</div>
+      <div class="index-value">${idx.val.toLocaleString('en-IN')}</div>
+      <div class="index-change ${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(idx.chg)}%</div>
+    </div>`;
+  }).join('');
+  setTimeout(() => document.querySelectorAll('.index-card').forEach(el => el.classList.add('revealed')), 50);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — SECTORS
+// ═══════════════════════════════════════════════════════════
+function renderSectors() {
+  document.getElementById('sectorDate').textContent = `Ref date: ${DATA_REF_DATE}`;
+  document.getElementById('sectorGrid').innerHTML = SECTORS.map(s =>
+    `<div class="sector-cell sector-${s.t}" title="${s.n}">
+      <div>${s.n}</div><div style="margin-top:3px;font-size:11px">${s.p}</div>
+    </div>`).join('');
+  setTimeout(() => document.getElementById('sectorHeatmap').classList.add('revealed'), 200);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — WATCHLIST
+// ═══════════════════════════════════════════════════════════
+function renderWatchlist(stocks) {
+  document.getElementById('wlDate').textContent = DATA_REF_DATE;
+  const gradeColors = {'A+':'linear-gradient(135deg,#ffd700,#e06000)','A':'rgba(0,230,118,.2)','B+':'rgba(79,172,254,.2)','B':'rgba(100,100,150,.2)','C':'rgba(150,100,100,.2)','REJECT':'rgba(255,61,87,.15)','—':'rgba(100,100,100,.1)'};
+  const gradeText   = {'A+':'#000','A':'var(--accent-green)','B+':'var(--accent-blue)','B':'var(--text-secondary)','C':'var(--text-muted)','REJECT':'var(--accent-red)','—':'var(--text-muted)'};
+
+  document.getElementById('watchlistBody').innerHTML = stocks.map(s => {
+    const up  = s.chg >= 0;
+    const stC = s.stage===2?'stage-2':s.stage===1?'stage-1':'stage-34';
+    const stL = s.stage===2?'Stage 2':s.stage===1?'Stage 1':'Stage 3/4';
+    const grade = s.grade || '—';
+    const gBg   = gradeColors[grade] || gradeColors['—'];
+    const gTxt  = gradeText[grade]   || gradeText['—'];
+    const entryStr  = s.entry  ? `₹${Number(s.entry).toLocaleString('en-IN')}`  : '—';
+    const stopStr   = s.stop   ? `₹${Number(s.stop).toLocaleString('en-IN')}`   : '—';
+    return `<tr>
+      <td><strong style="color:var(--accent-blue)">${s.t}</strong><div style="font-size:10px;color:var(--text-muted)">${s.n}</div></td>
+      <td><strong>₹${(s.ltp||0).toLocaleString('en-IN')}</strong></td>
+      <td class="${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(s.chg||0)}%</td>
+      <td style="color:${s.ltp>s.ma50?'var(--accent-green)':'var(--accent-red)'}">₹${(s.ma50||0).toLocaleString('en-IN')}</td>
+      <td style="color:${s.ltp>s.ma200?'var(--accent-green)':'var(--accent-red)'}">₹${(s.ma200||0).toLocaleString('en-IN')}</td>
+      <td>₹${(s.h52||0).toLocaleString('en-IN')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="rs-bar"><div class="rs-fill" style="width:0" data-target="${s.rs||0}"></div></div>
+          <span style="font-size:12px;font-weight:800;color:${(s.rs||0)>=80?'var(--accent-green)':(s.rs||0)>=60?'var(--accent-gold)':'var(--accent-red)'}">${s.rs||0}</span>
+        </div>
+      </td>
+      <td><span class="stage-badge ${stC}">${stL}</span></td>
+      <td><span style="font-weight:800;font-size:14px;color:${(s.tt||0)>=7?'var(--accent-green)':(s.tt||0)>=5?'var(--accent-gold)':'var(--accent-red)'}">${s.tt||0}/8</span></td>
+      <td><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${gBg};color:${gTxt};font-size:11px;font-weight:900">${grade}</span></td>
+      <td style="font-weight:700;color:var(--accent-blue)">${entryStr}</td>
+      <td style="color:var(--accent-red)">${stopStr}</td>
+    </tr>`;
+  }).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.rs-fill').forEach(el => {
+      el.style.width = el.dataset.target + '%';
+    });
+  }, 300);
+  setTimeout(() => document.getElementById('watchlistSection').classList.add('revealed'), 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — BOARD
+// ═══════════════════════════════════════════════════════════
+function renderBoard() {
+  const grid = document.getElementById('boardGrid');
+  grid.innerHTML = TRADERS.map((t,i) => {
+    const sc = t.signal==='BULL'?'signal-bull':t.signal==='BEAR'?'signal-bear':'signal-neutral';
+    const se = t.signal==='BULL'?'↑':t.signal==='BEAR'?'↓':'→';
+    return `<div class="trader-card ${t.cssClass} ${activeTrader===t.id?'active':''}"
+      onclick="toggleTrader('${t.id}')"
+      style="transition-delay:${i*80}ms">
+      <div class="trader-header">
+        <div class="trader-avatar">${t.emoji}</div>
+        <div class="trader-name">${t.name}</div>
+        <div class="trader-style">${t.style}</div>
+        <div class="trader-signal ${sc}">${se}</div>
+      </div>
+      <div class="conviction-bar">
+        <div class="conviction-label"><span>Conviction</span><span style="color:var(--text-primary);font-weight:800">${t.conviction}%</span></div>
+        <div class="conv-track"><div class="conv-fill" data-target="${t.conviction}"></div></div>
+      </div>
+      <div class="trader-picks">
+        <div class="picks-label">Top Picks</div>
+        ${t.picks.map(p=>`<span class="pick-chip">${p}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.trader-card').forEach(el => el.classList.add('revealed'));
+    document.querySelectorAll('.conv-fill').forEach(el => {
+      el.style.width = el.dataset.target + '%';
+    });
+  }, 100);
+
+  const bulls = TRADERS.filter(t=>t.signal==='BULL').length;
+  const bears = TRADERS.filter(t=>t.signal==='BEAR').length;
+  const neutrals = TRADERS.filter(t=>t.signal==='NEUTRAL').length;
+  const setups = TRADERS.reduce((a,t)=>a+t.topSetups.length,0);
+  const avgConv = Math.round(TRADERS.reduce((a,t)=>a+t.conviction,0)/TRADERS.length);
+
+  countUp('bs-bullish', bulls);
+  countUp('bs-neutral', neutrals);
+  countUp('bs-bearish', bears);
+  countUp('bs-setups', setups);
+  document.getElementById('bs-conv').textContent = avgConv + '%';
+
+  setTimeout(() => document.getElementById('boardSummaryBar').classList.add('revealed'), 100);
+}
+
+function countUp(id, target) {
+  const el = document.getElementById(id);
+  let n = 0;
+  const step = () => { n++; el.textContent = n; if(n < target) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TRADER DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function toggleTrader(id) {
+  const panel = document.getElementById('detailPanel');
+  if(activeTrader === id) {
+    activeTrader = null;
+    panel.classList.remove('open');
+    renderBoard();
+    return;
+  }
+  activeTrader = id;
+  renderBoard();
+  renderDetail(id);
+  panel.classList.add('open');
+  setTimeout(() => panel.scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+function renderDetail(id) {
+  const t = TRADERS.find(x=>x.id===id);
+  const tab = activeTab[id] || 'macro';
+  document.getElementById('detailPanel').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div style="font-size:42px">${t.emoji}</div>
+      <div>
+        <div style="font-size:20px;font-weight:800">${t.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">
+          ${t.style} · Conviction <span style="color:${t.color};font-weight:800">${t.conviction}%</span>
+        </div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button onclick="askThisTrader('${id}')"
+          style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--accent-gold);
+          padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s"
+          onmouseover="this.style.background='rgba(240,165,0,.2)'" onmouseout="this.style.background='rgba(240,165,0,.12)'">
+          💬 Ask ${t.name.split(' ')[0]}
+        </button>
+        <button onclick="toggleTrader('${id}')"
+          style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);
+          padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer">✕ Close</button>
+      </div>
+    </div>
+
+    <div class="detail-tabs">
+      ${['macro','sector','setups','allocation'].map(tab2=>`
+        <button class="dtab ${tab===tab2?'active':''}" onclick="switchTab('${id}','${tab2}')">
+          ${tab2==='macro'?'📣 Macro':tab2==='sector'?'🗺 Sectors':tab2==='setups'?'📋 Top Setups':'💰 Allocation'}
+        </button>`).join('')}
+    </div>
+
+    <div class="tab-content ${tab==='macro'?'active':''}">
+      <div class="commentary-box">${t.macro}</div>
+    </div>
+    <div class="tab-content ${tab==='sector'?'active':''}">
+      <div class="commentary-box">${t.sectorRotation}</div>
+    </div>
+    <div class="tab-content ${tab==='setups'?'active':''}">
+      <div class="setup-grid">
+        ${t.topSetups.map((s,i)=>`
+          <div class="setup-item">
+            <div class="setup-rank">${i+1}</div>
+            <div class="setup-ticker">${s.t}</div>
+            <div class="setup-name">${s.n}</div>
+            <div class="setup-meta">
+              <span class="meta-tag meta-pattern">${s.pat}</span>
+              <span class="meta-tag meta-stage">${s.stage}</span>
+              <span class="meta-tag meta-sector">${s.sec}</span>
+            </div>
+            <div class="setup-levels">
+              <div class="level-item">Entry: <span>${s.entry}</span></div>
+              <div class="level-item">Stop: <span style="color:var(--accent-red)">${s.stop}</span></div>
+              <div class="level-item">Target: <span style="color:var(--accent-green)">${s.tgt}</span></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="tab-content ${tab==='allocation'?'active':''}">
+      <div class="alloc-grid">
+        <div class="alloc-card">
+          <div class="alloc-value">${t.alloc.deployed}</div>
+          <div class="alloc-label">Deployed</div>
+        </div>
+        <div class="alloc-card">
+          <div class="alloc-value" style="color:var(--accent-blue)">${t.alloc.cash}</div>
+          <div class="alloc-label">Cash Reserve</div>
+        </div>
+        <div class="alloc-card">
+          <div class="alloc-value" style="color:var(--accent-purple)">${t.alloc.maxPer}</div>
+          <div class="alloc-label">Max Per Trade</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function switchTab(id, tab) {
+  activeTab[id] = tab;
+  renderDetail(id);
+}
+
+function askThisTrader(id) {
+  const trader = TRADERS.find(t=>t.id===id);
+  const name = trader ? trader.name : 'CEO';
+  document.querySelectorAll('.chat-target-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.target === id);
+  });
+  chatTarget = id;
+  updateQuickBtns(id);
+  if(!chatOpen) toggleChat();
+  else {
+    // if minimized, restore
+    if(chatMinimized) toggleChatMinimize();
+  }
+  showToast(`💬 Now chatting with ${name}`);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — CEO
+// ═══════════════════════════════════════════════════════════
+function renderCEO() {
+  const d = CEO;
+  const rc = d.regime==='BULLISH'?'regime-bull':d.regime==='BEARISH'?'regime-bear':'regime-sideways';
+  const rows = d.trades.map(t => {
+    const vEl = t.verdict==='GO'?`<span class="verdict-go">✓ GO</span>`:
+                t.verdict==='NO-GO'?`<span class="verdict-nogo">✗ NO-GO</span>`:
+                `<span class="verdict-watch">◉ WATCH</span>`;
+    const gEl = t.grade==='A+'?`<span class="grade-badge grade-aplus">A+</span>`:
+                t.grade==='A'?`<span class="grade-badge grade-a">A</span>`:
+                t.grade==='B+'?`<span class="grade-badge grade-bplus">B+</span>`:
+                `<span class="grade-badge grade-rej" style="font-size:9px">REJ</span>`;
+    const stars = Array.from({length:t.advisors},()=>'⭐').join('');
+    return `<tr>
+      <td>${gEl}</td>
+      <td><strong style="color:var(--accent-blue)">${t.t}</strong><div style="font-size:10px;color:var(--text-muted)">${t.n}</div></td>
+      <td>${vEl}</td>
+      <td>${stars || '—'}<div style="font-size:10px;color:var(--text-muted)">${t.advisors}/5</div></td>
+      <td style="font-weight:700">${t.entry}</td>
+      <td style="color:var(--accent-red)">${t.stop}</td>
+      <td style="color:var(--accent-green)">${t.tgt}</td>
+      <td style="color:var(--accent-purple);font-weight:800">${t.rr}</td>
+      <td style="color:var(--accent-gold)">${t.sz}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${t.rat}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ceoSection').innerHTML = `
+    <div class="ceo-top">
+      <div class="ceo-avatar">👔</div>
+      <div class="ceo-profile">
+        <h3>CEO — Final Decision Authority</h3>
+        <p>Synthesising 5 legendary advisors · Capital: ₹50 Lakhs · Risk: 1% per trade · Ref: ${DATA_REF_DATE}</p>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="ceo-regime">
+          <div class="regime-label">Market Regime</div>
+          <div class="regime-value ${rc}">${d.regime}</div>
+        </div>
+        <button onclick="askThisTrader('ceo')" style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);
+          color:var(--accent-gold);padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+          white-space:nowrap;transition:all .2s"
+          onmouseover="this.style.background='rgba(240,165,0,.2)'" onmouseout="this.style.background='rgba(240,165,0,.1)'">
+          💬 Ask CEO
+        </button>
+      </div>
+    </div>
+
+    <div class="ceo-verdict-grid">
+      <div class="verdict-box">
+        <div class="verdict-title">📋 CEO Commentary</div>
+        <div class="verdict-commentary">${d.commentary}</div>
+      </div>
+      <div class="verdict-box">
+        <div class="verdict-title">📊 Board Consensus + Deployment</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">
+          <span class="up">● BULLISH: 4</span>  <span class="neutral">● NEUTRAL: 1</span>  <span class="dn">● BEARISH: 0</span>
+        </div>
+        <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;margin-bottom:16px">
+          <div style="width:80%;background:var(--accent-green);opacity:.7"></div>
+          <div style="width:20%;background:var(--accent-gold);opacity:.7"></div>
+        </div>
+        ${[
+          {l:'GO Trades Deployed',v:'₹10L',p:'20%',c:'var(--accent-green)'},
+          {l:'WATCH — Staged entry',v:'₹5L',p:'10%',c:'var(--accent-gold)'},
+          {l:'Cash — Dry Powder',v:'₹35L',p:'70%',c:'var(--accent-blue)'},
+        ].map(r=>`
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+              <span style="color:var(--text-secondary)">${r.l}</span>
+              <span style="color:${r.c};font-weight:800">${r.v} (${r.p})</span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+              <div style="width:${r.p};height:100%;background:${r.c};border-radius:3px;
+                animation:barGrow .8s ease both;transform-origin:left"></div>
+            </div>
+          </div>`).join('')}
+        <style>@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}</style>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">
+      🏆 Final Trade Verdicts — Ranked by Consensus
+    </div>
+    <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border)">
+      <table class="ceo-trades-table">
+        <thead><tr>
+          <th>Grade</th><th>Stock</th><th>Verdict</th><th>Consensus</th>
+          <th>Entry</th><th>Stop</th><th>Target</th><th>R:R</th><th>Size</th><th>CEO Rationale</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LOADER & REFRESH
+// ═══════════════════════════════════════════════════════════
+const LOADER_STEPS = [
+  {icon:'📡', text:'Connecting to NSE/BSE data feed'},
+  {icon:'📊', text:'Pulling index OHLCV from yfinance'},
+  {icon:'🔢', text:'Computing moving averages & RS ranks'},
+  {icon:'🗺', text:'Calculating sector rotation heatmap'},
+  {icon:'🎯', text:'Activating Mark Minervini (SEPA agent)'},
+  {icon:'📊', text:'Activating Stan Weinstein (Stage Analysis)'},
+  {icon:'📈', text:"Activating William O'Neil (CANSLIM)"},
+  {icon:'🌊', text:'Activating Paul Tudor Jones (Macro)'},
+  {icon:'🔮', text:'Activating Jesse Livermore (Tape Reading)'},
+  {icon:'🧠', text:'Running cross-agent setup analysis'},
+  {icon:'👔', text:'CEO synthesising advisor verdicts'},
+  {icon:'✅', text:'Rendering advisory dashboard'},
+];
+
+function runFullAnalysis() {
+  const overlay = document.getElementById('loadingOverlay');
+  const btn = document.getElementById('refreshBtn');
+  overlay.classList.remove('hidden');
+  btn.classList.add('loading');
+
+  const list = document.getElementById('loaderStepsList');
+  list.innerHTML = LOADER_STEPS.map((s,i)=>
+    `<div class="loader-step-item" id="lstep${i}">
+      <span class="step-icon">${s.icon}</span>${s.text}
+    </div>`).join('');
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if(step > 0) {
+      const prev = document.getElementById(`lstep${step-1}`);
+      if(prev) { prev.classList.remove('active'); prev.classList.add('done'); prev.querySelector('.step-icon').textContent = '✓'; }
+    }
+    if(step < LOADER_STEPS.length) {
+      const cur = document.getElementById(`lstep${step}`);
+      if(cur) cur.classList.add('active');
+      step++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        btn.classList.remove('loading');
+        renderAll();
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = `Updated ${now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+        document.getElementById('dataAsOf').textContent = DATA_REF_DATE;
+        document.getElementById('simDate').textContent = DATA_REF_DATE;
+
+        // Update banner based on whether live data was loaded
+        if (DATA_LOADED_LIVE) {
+          document.getElementById('dataBannerStatus').innerHTML =
+            `<strong style="color:var(--accent-green)">✅ LIVE EOD DATA</strong> — pulled from Yahoo Finance (yfinance) via GitHub Actions`;
+          document.getElementById('dataBanner').style.borderColor = 'rgba(0,230,118,0.3)';
+          document.getElementById('dataBanner').style.background = 'linear-gradient(135deg,rgba(0,230,118,0.04),rgba(79,172,254,0.03))';
+        } else {
+          document.getElementById('dataBannerStatus').innerHTML =
+            `<strong style="color:var(--accent-red)">⚠️ SIMULATED DATA</strong> — data.json not found. Set up GitHub Actions to get real EOD data.`;
+        }
+
+        showToast(DATA_LOADED_LIVE ? '✅ Live EOD data loaded' : '✓ Advisory ready (simulated data)');
+      }, 400);
+    }
+  }, 260);
+}
+
+function renderAll() {
+  renderTape();
+  renderIndices();
+  renderSectors();
+  renderWatchlist(WATCHLIST);
+  renderBoard();
+  renderCEO();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WATCHLIST — ADD TICKER
+// ═══════════════════════════════════════════════════════════
+function addTicker() {
+  const input = document.getElementById('tickerInput');
+  const ticker = input.value.trim().toUpperCase();
+  if(!ticker) return;
+  if(WATCHLIST.find(s=>s.t===ticker)) { showToast(`${ticker} already in watchlist`); input.value=''; return; }
+
+  const ltp = Math.round(300 + Math.random()*8000);
+  const ma200 = Math.round(ltp*(0.78+Math.random()*.18));
+  const ma50  = Math.round(ltp*(0.90+Math.random()*.12));
+  const rs    = Math.round(35 + Math.random()*60);
+  const stage = ltp>ma200&&ltp>ma50?2:ltp>ma200?1:3;
+  const tt    = stage===2?Math.round(6+Math.random()*2):stage===1?Math.round(3+Math.random()*3):Math.round(1+Math.random()*3);
+
+  WATCHLIST.push({t:ticker,n:ticker+' Ltd',ltp,chg:parseFloat((Math.random()*6-2).toFixed(1)),
+    ma50,ma200,h52:Math.round(ltp*(1.05+Math.random()*.4)),rs,stage,tt});
+
+  renderWatchlist(WATCHLIST);
+  input.value = '';
+  showToast(`✓ ${ticker} added — Stage ${stage}, TT ${tt}/8, RS ${rs}`);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════════════════
+function tick() {
+  const now = new Date();
+  document.getElementById('currentTime').textContent =
+    now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const h=now.getHours(),m=now.getMinutes();
+  const open = h>=9&&(h<15||(h===15&&m<=30));
+  document.getElementById('marketStatus').textContent = open?'● NSE Open':'○ NSE Closed';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LIVE DATA LOADER — reads data.json from same folder
+// ═══════════════════════════════════════════════════════════
+function loadLiveData(callback) {
+  // Try fetching data.json (works on GitHub Pages or local server)
+  fetch('data.json?v=' + Date.now())
+    .then(r => {
+      if (!r.ok) throw new Error('data.json not found');
+      return r.json();
+    })
+    .then(data => {
+      LIVE_DATA = data;
+      DATA_LOADED_LIVE = true;
+
+      // Patch INDICES from live data
+      if (data.indices && data.indices.length) {
+        data.indices.forEach((idx, i) => {
+          if (INDICES[i]) {
+            INDICES[i].val  = idx.value  || INDICES[i].val;
+            INDICES[i].chg  = idx.chg    || INDICES[i].chg;
+            INDICES[i].color = idx.color || INDICES[i].color;
+          }
+        });
+      }
+
+      // Patch SECTORS from live data
+      if (data.sectors && data.sectors.length) {
+        data.sectors.forEach((s, i) => {
+          if (SECTORS[i]) {
+            SECTORS[i].p = s.pct  || SECTORS[i].p;
+            SECTORS[i].t = s.type || SECTORS[i].t;
+          }
+        });
+      }
+
+      // Patch WATCHLIST from live data
+      if (data.watchlist && data.watchlist.length) {
+        // Clear and rebuild watchlist from live data
+        WATCHLIST.length = 0;
+        data.watchlist.forEach(s => {
+          WATCHLIST.push({
+            t:      s.ticker,
+            n:      s.name || s.ticker,
+            ltp:    s.ltp  || 0,
+            chg:    s.chg  || 0,
+            ma50:   s.ma50  || 0,
+            ma200:  s.ma200 || 0,
+            h52:    s.high52w || 0,
+            rs:     s.rs   || 50,
+            stage:  s.stage || 1,
+            tt:     s.tt   || 0,
+            grade:  s.grade || '—',
+            entry:  s.entry,
+            stop:   s.stop,
+            target: s.target,
+            rr:     s.rr,
+          });
+        });
+      }
+
+      // Update date reference
+      if (data.meta) {
+        DATA_REF_DATE = data.meta.fetch_time || data.meta.fetch_date || DATA_REF_DATE;
+      }
+
+      console.log('✅ Live data.json loaded:', DATA_REF_DATE);
+      showToast('✅ Live EOD data loaded — ' + DATA_REF_DATE);
+      callback(true);
+    })
+    .catch(err => {
+      console.warn('ℹ️ data.json not found — using simulated data. (' + err.message + ')');
+      callback(false);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — WATCHLIST (upgraded to show live grade/entry)
+// ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  tick();
+  setInterval(tick, 30000);
+
+  // Try live data first, then run analysis either way
+  loadLiveData((_loaded) => {
+    runFullAnalysis();
+  });
+});
+</script>
+</body>
+</html>
