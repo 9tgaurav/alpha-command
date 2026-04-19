@@ -1063,7 +1063,9 @@ function getCEOResponse(question) {
     return `<strong>CEO Capital Plan:</strong> ₹10L deployed in GO trades (DIXON, PERSISTENT, PGEL, INFY). ₹35L in cash reserve. Deployment is staged — we add only when setups confirm on volume.`;
   if(/dixon/.test(lq))
     return `<strong>CEO on DIXON:</strong> GO. All 5 advisors support it. A+ grade. Entry ₹12,100. Stop ₹11,100. Target ₹14,200. Position size ₹2.5L. This is our highest conviction trade. Execute.`;
-  return `<strong>CEO Final Word:</strong> Data says deploy in leaders, avoid laggards, keep 30% powder dry. The board has spoken. Now execute with discipline — entry, stop, target pre-set before market opens.`;
+  if(/risk|veto|5%|stop.*wide|wide.*stop/.test(lq))
+    return `<strong>CEO Risk Policy — Non-Negotiable:</strong> Any setup where the stop loss is more than <strong>5% below entry</strong> is automatically vetoed. I don't care if Minervini loves it. Risk management is the CEO's final call. A stock graded A+ by the board becomes a 🚫 CEO VETO if it can't fit within a 5% stop. Tight stops keep us alive for the next trade.`;
+  return `<strong>CEO Final Word:</strong> Data says deploy in leaders, avoid laggards, keep 30% powder dry. The board has spoken. Now execute with discipline — entry, stop, target pre-set before market opens. <em>Reminder: Any pick with risk &gt;5% has been vetoed — no exceptions.</em>`;
 }
 
 function getAllBoardResponse(question) {
@@ -1263,8 +1265,8 @@ function renderSectors() {
 // ═══════════════════════════════════════════════════════════
 function renderWatchlist(stocks) {
   document.getElementById('wlDate').textContent = DATA_REF_DATE;
-  const gradeColors = {'A+':'linear-gradient(135deg,#ffd700,#e06000)','A':'rgba(0,230,118,.2)','B+':'rgba(79,172,254,.2)','B':'rgba(100,100,150,.2)','C':'rgba(150,100,100,.2)','REJECT':'rgba(255,61,87,.15)','—':'rgba(100,100,100,.1)'};
-  const gradeText   = {'A+':'#000','A':'var(--accent-green)','B+':'var(--accent-blue)','B':'var(--text-secondary)','C':'var(--text-muted)','REJECT':'var(--accent-red)','—':'var(--text-muted)'};
+  const gradeColors = {'A+':'linear-gradient(135deg,#ffd700,#e06000)','A':'rgba(0,230,118,.2)','B+':'rgba(79,172,254,.2)','B':'rgba(100,100,150,.2)','C':'rgba(150,100,100,.2)','REJECT':'rgba(255,61,87,.15)','CEO VETO':'rgba(255,100,0,.18)','—':'rgba(100,100,100,.1)'};
+  const gradeText   = {'A+':'#000','A':'var(--accent-green)','B+':'var(--accent-blue)','B':'var(--text-secondary)','C':'var(--text-muted)','REJECT':'var(--accent-red)','CEO VETO':'#ff6400','—':'var(--text-muted)'};
 
   document.getElementById('watchlistBody').innerHTML = stocks.map(s => {
     const up  = s.chg >= 0;
@@ -1275,7 +1277,12 @@ function renderWatchlist(stocks) {
     const gTxt  = gradeText[grade]   || gradeText['—'];
     const entryStr  = s.entry  ? `₹${Number(s.entry).toLocaleString('en-IN')}`  : '—';
     const stopStr   = s.stop   ? `₹${Number(s.stop).toLocaleString('en-IN')}`   : '—';
-    return `<tr>
+    // CEO VETO badge — compact version for table, with tooltip
+    const isCEOVeto = grade === 'CEO VETO';
+    const gradeBadge = isCEOVeto
+      ? `<span title="CEO Vetoed — Risk &gt;5% of entry. Setup quality OK but stop too wide." style="display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:22px;border-radius:6px;background:rgba(255,100,0,.18);color:#ff6400;font-size:9px;font-weight:900;padding:0 4px;border:1px solid rgba(255,100,0,.4);cursor:help">🚫 VETO</span>`
+      : `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${gBg};color:${gTxt};font-size:11px;font-weight:900">${grade}</span>`;
+    return `<tr style="${isCEOVeto?'opacity:0.7':''}">
       <td><strong style="color:var(--accent-blue)">${s.t}</strong><div style="font-size:10px;color:var(--text-muted)">${s.n}</div></td>
       <td><strong>₹${(s.ltp||0).toLocaleString('en-IN')}</strong></td>
       <td class="${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(s.chg||0)}%</td>
@@ -1290,9 +1297,13 @@ function renderWatchlist(stocks) {
       </td>
       <td><span class="stage-badge ${stC}">${stL}</span></td>
       <td><span style="font-weight:800;font-size:14px;color:${(s.tt||0)>=7?'var(--accent-green)':(s.tt||0)>=5?'var(--accent-gold)':'var(--accent-red)'}">${s.tt||0}/8</span></td>
-      <td><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${gBg};color:${gTxt};font-size:11px;font-weight:900">${grade}</span></td>
-      <td style="font-weight:700;color:var(--accent-blue)">${entryStr}</td>
-      <td style="color:var(--accent-red)">${stopStr}</td>
+      <td>${gradeBadge}</td>
+      <td style="font-weight:700;color:${isCEOVeto?'var(--text-muted)':'var(--accent-blue)'}">
+        ${isCEOVeto ? '<span style="font-size:10px;color:#ff6400">Risk&gt;5%</span>' : entryStr}
+      </td>
+      <td style="color:${isCEOVeto?'var(--text-muted)':'var(--accent-red)'}">
+        ${isCEOVeto ? '—' : stopStr}
+      </td>
     </tr>`;
   }).join('');
 
