@@ -1879,14 +1879,59 @@ function loadLiveData(callback) {
       callback(true);
     })
     .catch(err => {
-      console.warn('ℹ️ data.json not found — using simulated data. (' + err.message + ')');
+      console.warn('⚠️ data.json not found:', err.message);
       callback(false);
     });
 }
 
 // ═══════════════════════════════════════════════════════════
-//  RENDER — WATCHLIST (upgraded to show live grade/entry)
+//  LEAKPROOF GATE — block advisory if data is missing/stale
 // ═══════════════════════════════════════════════════════════
+function isDataStale(fetchTimeStr) {
+  if (!fetchTimeStr) return true;
+  try {
+    // fetchTimeStr format: "2026-04-20 22:09 IST" or ISO
+    // Parse it — strip IST/timezone label and parse
+    const clean = fetchTimeStr.replace(/\s*IST\s*/i, '').trim();
+    const parsed = new Date(clean);
+    if (isNaN(parsed.getTime())) return true;
+    const nowUTC = Date.now();
+    const ageMs = nowUTC - parsed.getTime();
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    // Allow up to 3 days (covers weekends — no data on Sat/Sun)
+    return ageDays > 3;
+  } catch(e) { return true; }
+}
+
+function showDataUnavailableScreen(reason) {
+  // Overlay the entire app with a hard block
+  const overlay = document.createElement('div');
+  overlay.id = 'dataGate';
+  overlay.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;
+    background:#07090f;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:24px;
+    font-family:'Segoe UI',system-ui,sans-serif;
+  `;
+  overlay.innerHTML = `
+    <div style="font-size:56px">🚫</div>
+    <div style="font-size:22px;font-weight:800;color:#ff3d57;letter-spacing:1px">DATA UNAVAILABLE</div>
+    <div style="font-size:14px;color:#8892b0;max-width:480px;text-align:center;line-height:1.7">
+      ${reason}<br><br>
+      <strong style="color:#f0a500">CEO Rule — Non-Negotiable:</strong><br>
+      Advisory output is locked until fresh EOD data is confirmed.<br>
+      Do <em>not</em> trade on stale or missing data.
+    </div>
+    <div style="font-size:12px;color:#4a5568;margin-top:8px">
+      Next auto-refresh: weekdays at 3:45 PM IST via GitHub Actions
+    </div>
+    <button onclick="location.reload()" style="
+      margin-top:16px;padding:10px 28px;background:#1a2640;
+      border:1px solid #223058;border-radius:8px;color:#8892b0;
+      font-size:13px;cursor:pointer;">↻ Retry</button>
+  `;
+  document.body.appendChild(overlay);
+}
 
 // ═══════════════════════════════════════════════════════════
 //  INIT
@@ -1895,8 +1940,28 @@ document.addEventListener('DOMContentLoaded', () => {
   tick();
   setInterval(tick, 30000);
 
-  // Try live data first, then run analysis either way
-  loadLiveData((_loaded) => {
+  loadLiveData((loaded) => {
+    if (!loaded) {
+      // data.json missing — hard block
+      showDataUnavailableScreen(
+        'Live EOD data (data.json) could not be loaded from the server.<br>' +
+        'This file is generated each weekday at 3:45 PM IST by GitHub Actions.'
+      );
+      return; // Do NOT run analysis — no fallback to simulated data
+    }
+
+    // Check data freshness — block if stale
+    const fetchTime = LIVE_DATA && LIVE_DATA.meta && LIVE_DATA.meta.fetch_time;
+    if (isDataStale(fetchTime)) {
+      showDataUnavailableScreen(
+        `Data timestamp: <strong style="color:#ff3d57">${fetchTime || 'unknown'}</strong><br>` +
+        'This data is older than 3 days and cannot be used for advisory decisions.<br>' +
+        'The GitHub Actions pipeline may have failed — check the repo for errors.'
+      );
+      return; // Block — stale data is as dangerous as no data
+    }
+
+    // Data is fresh and live — run the full advisory
     runFullAnalysis();
   });
 });
