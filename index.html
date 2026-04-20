@@ -2182,7 +2182,7 @@ function openStockDetail(ticker) {
       </div>
 
       <div class="sm-chart-wrap">
-        <div class="sm-chart-title">📈 PRICE CHART — Last 3 Months &nbsp;·&nbsp; <span style="color:#f0a500">50-DMA</span> &nbsp;·&nbsp; <span style="color:#a855f7">200-DMA</span> &nbsp;&nbsp;<span style="font-size:9px;color:#4a5568">(directional chart · for real candles use TradingView link below)</span></div>
+        <div class="sm-chart-title" id="smChartTitle">📈 PRICE CHART — Last 3 Months &nbsp;·&nbsp; <span style="color:#f0a500">50-DMA</span> &nbsp;·&nbsp; <span style="color:#a855f7">200-DMA</span></div>
         <div class="sm-loading" id="smLoading"><div class="sm-spinner"></div> Building chart…</div>
         <canvas id="smChartCanvas" style="display:none"></canvas>
       </div>
@@ -2206,51 +2206,44 @@ function openStockDetail(ticker) {
 }
 
 function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
-  // Generate 65 days of simulated price history anchored to today's real LTP/MA values
-  // This gives a realistic visual until a live OHLCV API is wired in
-  const days = 65;
+  // ── Use real OHLCV from data.json if available ──────────────────────────
   const labels = [], opens = [], highs = [], lows = [], closes = [];
   const ma50line = [], ma200line = [];
 
-  // Work backwards from LTP — simulate a path that arrives at LTP on day 0
-  // Volatility based on how far LTP is from MAs
-  const vol = ltp * 0.012; // ~1.2% daily vol
-  let price = ltp;
-  const rawPrices = [ltp];
-  for(let i=1; i<days; i++) {
-    // Random walk backwards with slight mean-reversion to MA50
-    const drift = (ma50 && ma50 > 0) ? (ma50 - price) * 0.02 : 0;
-    const move  = (Math.random() - 0.48) * vol + drift;
-    price = Math.max(price - move, ltp * 0.5);
-    rawPrices.unshift(price);
-  }
+  // Find real OHLCV data for this ticker
+  const stockData = LIVE_DATA && LIVE_DATA.watchlist &&
+    LIVE_DATA.watchlist.find(s => s.ticker === ticker);
+  const realOHLCV = stockData && stockData.ohlcv && stockData.ohlcv.length > 5
+    ? stockData.ohlcv : null;
 
-  // Build OHLC candles
-  const today = new Date();
-  let dayCount = 0;
-  for(let i=0; i<days; i++) {
-    // Skip weekends
-    const d = new Date(today);
-    d.setDate(today.getDate() - (days - 1 - i));
-    if(d.getDay()===0||d.getDay()===6) continue;
-    const dd = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
-    labels.push(dd);
-    const c = rawPrices[i];
-    const o = c * (1 + (Math.random()-0.5)*0.008);
-    const h = Math.max(o,c) * (1 + Math.random()*0.006);
-    const l = Math.min(o,c) * (1 - Math.random()*0.006);
-    opens.push(parseFloat(o.toFixed(2)));
-    highs.push(parseFloat(h.toFixed(2)));
-    lows.push(parseFloat(l.toFixed(2)));
-    closes.push(parseFloat(c.toFixed(2)));
-
-    // MA50 line — starts below actual MA50, rises to it
-    const ma50v = ma50 ? ma50 * (0.92 + 0.08*(i/days)) : null;
-    // MA200 line — flatter, below MA50
-    const ma200v = ma200 ? ma200 * (0.96 + 0.04*(i/days)) : null;
-    ma50line.push(ma50v ? parseFloat(ma50v.toFixed(2)) : null);
-    ma200line.push(ma200v ? parseFloat(ma200v.toFixed(2)) : null);
-    dayCount++;
+  if (realOHLCV) {
+    // ── REAL DATA path ────────────────────────────────────────────────────
+    realOHLCV.forEach(bar => {
+      const d = new Date(bar.d);
+      labels.push(d.toLocaleDateString('en-IN', {day:'2-digit', month:'short'}));
+      opens.push(bar.o);
+      highs.push(bar.h);
+      lows.push(bar.l);
+      closes.push(bar.c);
+      ma50line.push(ma50 || null);
+      ma200line.push(ma200 || null);
+    });
+    // Update chart title to show real data badge
+    const titleEl = document.getElementById('smChartTitle');
+    if (titleEl) titleEl.innerHTML = `📈 REAL PRICE CHART — Last 3 Months &nbsp;·&nbsp; <span style="color:#f0a500">50-DMA</span> &nbsp;·&nbsp; <span style="color:#a855f7">200-DMA</span> &nbsp;<span style="font-size:9px;background:rgba(0,230,118,0.15);color:#00e676;padding:2px 7px;border-radius:4px;border:1px solid rgba(0,230,118,0.3)">✓ LIVE OHLCV</span>`;
+  } else {
+    // ── FALLBACK: flat bars at LTP (shown only if data.json has no ohlcv) ─
+    const days = 45;
+    const today = new Date();
+    for(let i=0; i<days; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (days - 1 - i));
+      if(d.getDay()===0||d.getDay()===6) continue;
+      labels.push(d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+      opens.push(ltp); highs.push(ltp); lows.push(ltp); closes.push(ltp);
+      ma50line.push(ma50 || null);
+      ma200line.push(ma200 || null);
+    }
   }
 
   const canvas = document.getElementById('smChartCanvas');
@@ -2347,7 +2340,14 @@ function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
             grid:  { color:'rgba(26,38,64,0.5)' }
           },
           y: {
-            ticks: { color:'#8892b0', font:{size:10}, callback: v => '₹'+(v/1000).toFixed(1)+'k' },
+            ticks: {
+              color:'#8892b0', font:{size:10},
+              callback: v => {
+                if (v >= 100000) return '₹' + (v/100000).toFixed(1) + 'L';
+                if (v >= 1000)   return '₹' + (v/1000).toFixed(1) + 'k';
+                return '₹' + v.toFixed(0);
+              }
+            },
             grid:  { color:'rgba(26,38,64,0.5)' }
           }
         }
