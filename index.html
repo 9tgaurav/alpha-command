@@ -1283,7 +1283,10 @@ function renderWatchlist(stocks) {
       ? `<span title="CEO Vetoed — Risk &gt;5% of entry. Setup quality OK but stop too wide." style="display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:22px;border-radius:6px;background:rgba(255,100,0,.18);color:#ff6400;font-size:9px;font-weight:900;padding:0 4px;border:1px solid rgba(255,100,0,.4);cursor:help">🚫 VETO</span>`
       : `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${gBg};color:${gTxt};font-size:11px;font-weight:900">${grade}</span>`;
     return `<tr style="${isCEOVeto?'opacity:0.7':''}">
-      <td><strong style="color:var(--accent-blue)">${s.t}</strong><div style="font-size:10px;color:var(--text-muted)">${s.n}</div></td>
+      <td style="cursor:pointer" onclick="openStockDetail('${s.t}')">
+        <strong style="color:var(--accent-blue);text-decoration:underline dotted;text-underline-offset:3px">${s.t}</strong>
+        <div style="font-size:10px;color:var(--text-muted)">${s.n}</div>
+      </td>
       <td><strong>₹${(s.ltp||0).toLocaleString('en-IN')}</strong></td>
       <td class="${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(s.chg||0)}%</td>
       <td style="color:${s.ltp>s.ma50?'var(--accent-green)':'var(--accent-red)'}">₹${(s.ma50||0).toLocaleString('en-IN')}</td>
@@ -1976,6 +1979,392 @@ document.addEventListener('DOMContentLoaded', () => {
     runFullAnalysis();
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+//  STOCK DETAIL MODAL — candlestick chart + full stats
+// ═══════════════════════════════════════════════════════════
+(function buildStockDetailModal() {
+  // ── CSS ──────────────────────────────────────────────────
+  const style = document.createElement('style');
+  style.textContent = `
+  #stockModal {
+    display:none; position:fixed; inset:0; z-index:8000;
+    background:rgba(7,9,15,0.96); backdrop-filter:blur(12px);
+    overflow-y:auto;
+  }
+  #stockModal.open { display:flex; flex-direction:column; align-items:center; padding:24px 16px 40px; }
+  .sm-card {
+    width:100%; max-width:1100px;
+    background:#0d1120; border:1px solid #1a2640;
+    border-radius:18px; overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.7);
+    animation: smSlideIn .25s cubic-bezier(.25,.46,.45,.94);
+  }
+  @keyframes smSlideIn { from{transform:translateY(32px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .sm-header {
+    background:linear-gradient(135deg,#0d1527,#111827);
+    border-bottom:1px solid #1a2640;
+    padding:20px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .sm-ticker { font-size:26px; font-weight:900; color:#4facfe; letter-spacing:1px; }
+  .sm-name   { font-size:12px; color:#8892b0; margin-top:2px; }
+  .sm-ltp    { font-size:28px; font-weight:900; }
+  .sm-chg    { font-size:14px; font-weight:700; margin-top:2px; }
+  .sm-close  {
+    width:36px; height:36px; border-radius:50%; border:1px solid #1a2640;
+    background:#111827; color:#8892b0; font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:all .2s;
+  }
+  .sm-close:hover { background:#1a2640; color:#e8eaf0; }
+  .sm-body { padding:24px 28px; }
+  .sm-stats {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:24px;
+  }
+  .sm-stat {
+    background:#111827; border:1px solid #1a2640; border-radius:10px; padding:12px 14px;
+  }
+  .sm-stat-label { font-size:10px; color:#8892b0; text-transform:uppercase; letter-spacing:.8px; margin-bottom:4px; }
+  .sm-stat-val   { font-size:16px; font-weight:800; color:#e8eaf0; }
+  .sm-chart-wrap {
+    background:#111827; border:1px solid #1a2640; border-radius:12px;
+    padding:20px; margin-bottom:20px; position:relative; min-height:320px;
+  }
+  .sm-chart-title { font-size:12px; color:#8892b0; margin-bottom:14px; letter-spacing:.5px; }
+  #smChartCanvas  { width:100% !important; }
+  .sm-levels {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px;
+  }
+  .sm-level {
+    background:#111827; border:1px solid #1a2640; border-radius:10px;
+    padding:14px; text-align:center;
+  }
+  .sm-level-label { font-size:10px; color:#8892b0; text-transform:uppercase; letter-spacing:.8px; margin-bottom:6px; }
+  .sm-level-val   { font-size:18px; font-weight:900; }
+  .sm-loading { display:flex; align-items:center; justify-content:center; gap:10px; color:#8892b0; font-size:13px; padding:60px 0; }
+  .sm-spinner { width:20px; height:20px; border:2px solid #1a2640; border-top-color:#4facfe; border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .sm-grade-badge {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:48px; height:48px; border-radius:12px;
+    font-size:13px; font-weight:900; border:2px solid;
+  }
+  .sm-ext-links { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .sm-ext-btn {
+    padding:8px 16px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;
+    text-decoration:none; border:1px solid #1a2640; background:#111827; color:#8892b0;
+    transition:all .2s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .sm-ext-btn:hover { background:#1a2640; color:#e8eaf0; }
+  `;
+  document.head.appendChild(style);
+
+  // ── HTML ─────────────────────────────────────────────────
+  const modal = document.createElement('div');
+  modal.id = 'stockModal';
+  modal.innerHTML = `<div class="sm-card" id="smCard"></div>`;
+  modal.addEventListener('click', e => { if(e.target===modal) closeStockDetail(); });
+  document.body.appendChild(modal);
+
+  // Close on Escape key
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeStockDetail(); });
+})();
+
+let smChart = null; // Chart.js instance
+
+function closeStockDetail() {
+  document.getElementById('stockModal').classList.remove('open');
+  if(smChart) { smChart.destroy(); smChart = null; }
+}
+
+function openStockDetail(ticker) {
+  const modal = document.getElementById('stockModal');
+  const card  = document.getElementById('smCard');
+
+  // Find stock in live watchlist data
+  const s = WATCHLIST.find(w => w.t === ticker) ||
+            (LIVE_DATA && LIVE_DATA.watchlist && LIVE_DATA.watchlist.find(w => w.ticker === ticker));
+
+  const ltp    = s ? (s.ltp || 0)   : 0;
+  const chg    = s ? (s.chg || 0)   : 0;
+  const ma50   = s ? (s.ma50 || 0)  : 0;
+  const ma200  = s ? (s.ma200 || 0) : 0;
+  const h52    = s ? (s.h52 || 0)   : 0;
+  const rs     = s ? (s.rs || 0)    : 0;
+  const tt     = s ? (s.tt || 0)    : 0;
+  const stage  = s ? (s.stage || '?') : '?';
+  const grade  = s ? (s.grade || '—') : '—';
+  const entry  = s ? s.entry  : null;
+  const stop   = s ? s.stop   : null;
+  const target = s ? s.target : null;
+  const rr     = s ? s.rr     : null;
+  const name   = s ? (s.n || ticker) : ticker;
+
+  const up = chg >= 0;
+  const ltpColor  = up ? '#00e676' : '#ff3d57';
+  const gradeColorMap = {'A+':'#ffd700','A':'#00e676','B+':'#4facfe','CEO VETO':'#ff6400','REJECT':'#ff3d57','—':'#8892b0'};
+  const gradeColor = gradeColorMap[grade] || '#8892b0';
+  const fmt = v => v ? '₹' + Number(v).toLocaleString('en-IN') : '—';
+
+  // Levels section
+  const levelsHTML = (entry && stop && target) ? `
+    <div class="sm-levels">
+      <div class="sm-level">
+        <div class="sm-level-label">Entry</div>
+        <div class="sm-level-val" style="color:#4facfe">${fmt(entry)}</div>
+      </div>
+      <div class="sm-level">
+        <div class="sm-level-label">Stop Loss</div>
+        <div class="sm-level-val" style="color:#ff3d57">${fmt(stop)}</div>
+      </div>
+      <div class="sm-level">
+        <div class="sm-level-label">Target</div>
+        <div class="sm-level-val" style="color:#00e676">${fmt(target)}</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:12px;color:#8892b0">
+      Risk:Reward — <strong style="color:#f0a500">${rr ? rr+'% risk' : '—'}</strong>
+      &nbsp;·&nbsp; Size: ~₹50K position
+    </div>` : `
+    <div style="text-align:center;padding:16px;color:#8892b0;font-size:13px">
+      No actionable levels — ${grade === 'CEO VETO' ? 'CEO vetoed (risk >5%)' : 'stock does not meet entry criteria'}
+    </div>`;
+
+  card.innerHTML = `
+    <div class="sm-header">
+      <div>
+        <div class="sm-ticker">${ticker}
+          <span class="sm-grade-badge" style="color:${gradeColor};border-color:${gradeColor}20;background:${gradeColor}15;font-size:11px;vertical-align:middle;margin-left:10px">${grade}</span>
+        </div>
+        <div class="sm-name">${name} &nbsp;·&nbsp; Stage ${stage} &nbsp;·&nbsp; TT ${tt}/8 &nbsp;·&nbsp; RS ${rs}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="sm-ltp" style="color:${ltpColor}">${fmt(ltp)}</div>
+        <div class="sm-chg" style="color:${ltpColor}">${up?'▲':'▼'} ${Math.abs(chg)}%</div>
+      </div>
+      <button class="sm-close" onclick="closeStockDetail()">✕</button>
+    </div>
+    <div class="sm-body">
+      <div class="sm-stats">
+        <div class="sm-stat">
+          <div class="sm-stat-label">50-Day MA</div>
+          <div class="sm-stat-val" style="color:${ltp>ma50?'#00e676':'#ff3d57'}">${fmt(ma50)}</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">200-Day MA</div>
+          <div class="sm-stat-val" style="color:${ltp>ma200?'#00e676':'#ff3d57'}">${fmt(ma200)}</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">52-Week High</div>
+          <div class="sm-stat-val" style="color:#f0a500">${fmt(h52)}</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">% from 52W High</div>
+          <div class="sm-stat-val" style="color:${h52&&ltp/h52>=0.85?'#00e676':'#ff3d57'}">${h52 ? Math.round((ltp/h52-1)*100)+'%' : '—'}</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">RS Rank</div>
+          <div class="sm-stat-val" style="color:${rs>=80?'#00e676':rs>=60?'#f0a500':'#ff3d57'}">${rs}/100</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">Trend Template</div>
+          <div class="sm-stat-val" style="color:${tt>=7?'#00e676':tt>=5?'#f0a500':'#ff3d57'}">${tt}/8 criteria</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">Above 50-DMA</div>
+          <div class="sm-stat-val" style="color:${ltp>ma50?'#00e676':'#ff3d57'}">${ltp>ma50?'✓ YES':'✗ NO'}</div>
+        </div>
+        <div class="sm-stat">
+          <div class="sm-stat-label">Above 200-DMA</div>
+          <div class="sm-stat-val" style="color:${ltp>ma200?'#00e676':'#ff3d57'}">${ltp>ma200?'✓ YES':'✗ NO'}</div>
+        </div>
+      </div>
+
+      <div class="sm-chart-wrap">
+        <div class="sm-chart-title">📈 PRICE CHART — Last 3 Months (simulated OHLC · click NSE link for live chart)</div>
+        <div class="sm-loading" id="smLoading"><div class="sm-spinner"></div> Building chart…</div>
+        <canvas id="smChartCanvas" style="display:none"></canvas>
+      </div>
+
+      ${levelsHTML}
+
+      <div class="sm-ext-links">
+        <a class="sm-ext-btn" href="https://finance.yahoo.com/quote/${ticker}.NS" target="_blank">📊 Yahoo Finance</a>
+        <a class="sm-ext-btn" href="https://www.nseindia.com/get-quotes/equity?symbol=${ticker}" target="_blank">🏛️ NSE India</a>
+        <a class="sm-ext-btn" href="https://www.screener.in/company/${ticker}/" target="_blank">📋 Screener.in</a>
+        <a class="sm-ext-btn" href="https://chartink.com/stocks/${ticker}.html" target="_blank">📉 ChartInk</a>
+        <a class="sm-ext-btn" href="https://www.tradingview.com/chart/?symbol=NSE%3A${ticker}" target="_blank">🔭 TradingView</a>
+      </div>
+    </div>`;
+
+  modal.classList.add('open');
+  if(smChart) { smChart.destroy(); smChart = null; }
+
+  // Build chart from available data (MA lines + simulated OHLC around LTP)
+  setTimeout(() => buildStockChart(ticker, ltp, ma50, ma200, chg), 100);
+}
+
+function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
+  // Generate 65 days of simulated price history anchored to today's real LTP/MA values
+  // This gives a realistic visual until a live OHLCV API is wired in
+  const days = 65;
+  const labels = [], opens = [], highs = [], lows = [], closes = [];
+  const ma50line = [], ma200line = [];
+
+  // Work backwards from LTP — simulate a path that arrives at LTP on day 0
+  // Volatility based on how far LTP is from MAs
+  const vol = ltp * 0.012; // ~1.2% daily vol
+  let price = ltp;
+  const rawPrices = [ltp];
+  for(let i=1; i<days; i++) {
+    // Random walk backwards with slight mean-reversion to MA50
+    const drift = (ma50 && ma50 > 0) ? (ma50 - price) * 0.02 : 0;
+    const move  = (Math.random() - 0.48) * vol + drift;
+    price = Math.max(price - move, ltp * 0.5);
+    rawPrices.unshift(price);
+  }
+
+  // Build OHLC candles
+  const today = new Date();
+  let dayCount = 0;
+  for(let i=0; i<days; i++) {
+    // Skip weekends
+    const d = new Date(today);
+    d.setDate(today.getDate() - (days - 1 - i));
+    if(d.getDay()===0||d.getDay()===6) continue;
+    const dd = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+    labels.push(dd);
+    const c = rawPrices[i];
+    const o = c * (1 + (Math.random()-0.5)*0.008);
+    const h = Math.max(o,c) * (1 + Math.random()*0.006);
+    const l = Math.min(o,c) * (1 - Math.random()*0.006);
+    opens.push(parseFloat(o.toFixed(2)));
+    highs.push(parseFloat(h.toFixed(2)));
+    lows.push(parseFloat(l.toFixed(2)));
+    closes.push(parseFloat(c.toFixed(2)));
+
+    // MA50 line — starts below actual MA50, rises to it
+    const ma50v = ma50 ? ma50 * (0.92 + 0.08*(i/days)) : null;
+    // MA200 line — flatter, below MA50
+    const ma200v = ma200 ? ma200 * (0.96 + 0.04*(i/days)) : null;
+    ma50line.push(ma50v ? parseFloat(ma50v.toFixed(2)) : null);
+    ma200line.push(ma200v ? parseFloat(ma200v.toFixed(2)) : null);
+    dayCount++;
+  }
+
+  const canvas = document.getElementById('smChartCanvas');
+  const loading = document.getElementById('smLoading');
+  if(!canvas) return;
+
+  // Load Chart.js from CDN if not already loaded
+  function renderChart() {
+    loading.style.display = 'none';
+    canvas.style.display = 'block';
+    canvas.height = 300;
+
+    const ctx = canvas.getContext('2d');
+    const upColor   = 'rgba(0,230,118,0.85)';
+    const downColor = 'rgba(255,61,87,0.85)';
+
+    smChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          // OHLC bars — we render as stacked bars simulating candles
+          {
+            label: 'High-Low',
+            data: highs.map((h,i) => h - lows[i]),
+            backgroundColor: closes.map((c,i) => c >= opens[i] ? 'rgba(0,230,118,0.25)' : 'rgba(255,61,87,0.25)'),
+            borderColor:     closes.map((c,i) => c >= opens[i] ? upColor : downColor),
+            borderWidth: 1,
+            base: lows,
+            order: 2,
+          },
+          // Close line
+          {
+            label: 'Close',
+            data: closes,
+            type: 'line',
+            borderColor: '#4facfe',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            tension: 0.2,
+            order: 1,
+          },
+          // MA50 line
+          {
+            label: '50-DMA',
+            data: ma50line,
+            type: 'line',
+            borderColor: '#f0a500',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            borderDash: [4,3],
+            tension: 0.3,
+            order: 0,
+          },
+          // MA200 line
+          {
+            label: '200-DMA',
+            data: ma200line,
+            type: 'line',
+            borderColor: '#a855f7',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            borderDash: [6,4],
+            tension: 0.3,
+            order: 0,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 600 },
+        interaction: { mode:'index', intersect:false },
+        plugins: {
+          legend: {
+            labels: { color:'#8892b0', font:{size:11}, boxWidth:20, padding:16 }
+          },
+          tooltip: {
+            backgroundColor:'#0d1527',
+            borderColor:'#1a2640',
+            borderWidth:1,
+            titleColor:'#4facfe',
+            bodyColor:'#e8eaf0',
+            callbacks: {
+              label: ctx => {
+                if(ctx.dataset.label==='High-Low') return null;
+                return ` ${ctx.dataset.label}: ₹${ctx.parsed.y ? ctx.parsed.y.toLocaleString('en-IN') : '—'}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color:'#4a5568', font:{size:9}, maxTicksLimit:10 },
+            grid:  { color:'rgba(26,38,64,0.5)' }
+          },
+          y: {
+            ticks: { color:'#8892b0', font:{size:10}, callback: v => '₹'+(v/1000).toFixed(1)+'k' },
+            grid:  { color:'rgba(26,38,64,0.5)' }
+          }
+        }
+      }
+    });
+  }
+
+  if(window.Chart) {
+    renderChart();
+  } else {
+    // Load Chart.js dynamically
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    s.onload = renderChart;
+    s.onerror = () => { loading.innerHTML = '⚠️ Chart failed to load. Open NSE/TradingView links above.'; };
+    document.head.appendChild(s);
+  }
+}
 </script>
 </body>
 </html>
