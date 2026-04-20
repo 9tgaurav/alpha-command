@@ -347,6 +347,22 @@ def fetch_watchlist(tickers: list):
         ceo_vetoed = (grade not in ("REJECT", "C", "B") and entry is None)
         final_grade = "CEO VETO" if ceo_vetoed else grade
 
+        # ── Real OHLCV for candlestick chart (last 65 trading days) ──────────
+        ohlcv = []
+        try:
+            chart_df = df.tail(65)
+            for dt, row in chart_df.iterrows():
+                ohlcv.append({
+                    "d": str(dt)[:10],                         # date
+                    "o": round(float(row["Open"]),  2),
+                    "h": round(float(row["High"]),  2),
+                    "l": round(float(row["Low"]),   2),
+                    "c": round(float(row["Close"]), 2),
+                    "v": int(row.get("Volume", 0) or 0),
+                })
+        except Exception as e:
+            print(f"  ⚠ OHLCV extract failed for {t}: {e}")
+
         results.append({
             "ticker":    t,
             "name":      t,
@@ -370,6 +386,7 @@ def fetch_watchlist(tickers: list):
             "rr":        rr,
             "vol_today": ind["vol_today"],
             "avg_vol_20":ind["avg_vol_20"],
+            "ohlcv":     ohlcv,
         })
 
     # Sort: A+ first, then by RS rank. CEO VETO slots after B+
