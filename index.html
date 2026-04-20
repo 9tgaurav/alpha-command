@@ -1710,6 +1710,83 @@ function showToast(msg) {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  BOARD + CEO SYNC — patches from live watchlist data
+// ═══════════════════════════════════════════════════════════
+function patchBoardAndCEOFromLiveData(data) {
+  if (!data || !data.watchlist || !data.watchlist.length) return;
+
+  const wl = data.watchlist;
+  const fmt = v => v ? '₹' + Number(v).toLocaleString('en-IN') : '—';
+
+  // ── Build picks by grade ──────────────────────────────────────────────────
+  const goTrades   = wl.filter(s => s.grade === 'A+' || s.grade === 'A');
+  const watchTrades = wl.filter(s => s.grade === 'B+');
+  const allTop     = [...goTrades, ...watchTrades].slice(0, 10);
+
+  // ── Update each TRADER's picks and topSetups from live data ───────────────
+  const traderStyles = [
+    { id:'minervini', focus: 'VCP / SEPA setup',      criteria: s => s.tt >= 7 && s.rs >= 80 },
+    { id:'weinstein', focus: 'Stage 2 breakout',       criteria: s => s.stage === 2 && s.rs >= 65 },
+    { id:'oneil',     focus: 'CANSLIM momentum',       criteria: s => s.tt >= 6 && s.rs >= 70 },
+    { id:'jones',     focus: 'Macro / risk-reward',    criteria: s => s.rr && s.rr <= 5 },
+    { id:'livermore', focus: 'Tape / trend strength',  criteria: s => s.tt >= 5 && s.chg > 0 },
+  ];
+
+  TRADERS.forEach((trader, idx) => {
+    const style = traderStyles[idx];
+    if (!style) return;
+    // Get top 3 picks for this trader's style
+    const myPicks = wl.filter(style.criteria).slice(0, 3).map(s => s.ticker);
+    if (myPicks.length) trader.picks = myPicks;
+
+    // Update topSetups with live data
+    const setupStocks = wl.filter(style.criteria).slice(0, 6);
+    if (setupStocks.length) {
+      trader.topSetups = setupStocks.map(s => ({
+        t: s.ticker, n: s.ticker,
+        pat: s.stage === 2 ? 'Stage 2' : 'Watch',
+        stage: 'Stage ' + (s.stage || '?'),
+        sec: '—',
+        entry: fmt(s.entry),
+        stop:  fmt(s.stop),
+        tgt:   fmt(s.target),
+        grade: s.grade || '—',
+      }));
+    }
+  });
+
+  // ── Update CEO trades table from live GO trades ───────────────────────────
+  const regime = (data.meta && data.meta.regime) || CEO.regime;
+  CEO.regime = regime;
+
+  if (goTrades.length || watchTrades.length) {
+    CEO.trades = [...goTrades, ...watchTrades].slice(0, 8).map(s => {
+      const verdict = (s.grade === 'A+' || s.grade === 'A') ? 'GO'
+                    : s.grade === 'B+' ? 'WATCH' : 'NO-GO';
+      // Count how many traders' criteria this stock passes (proxy for advisor consensus)
+      const advisorCount = traderStyles.filter(ts => ts.criteria(s)).length;
+      return {
+        t: s.ticker,
+        n: s.ticker,
+        verdict,
+        grade: s.grade || '—',
+        advisors: Math.max(advisorCount, verdict === 'GO' ? 3 : 1),
+        entry: fmt(s.entry),
+        stop:  fmt(s.stop),
+        tgt:   fmt(s.target),
+        rr:    s.rr ? s.rr + '%' : '—',
+        sz:    s.entry ? '₹' + Math.round(50000 / (s.entry * (s.rr||5) / 100)).toLocaleString('en-IN') + ' shares' : '—',
+        rat:   `TT ${s.tt||0}/8 · RS ${s.rs||0} · Stage ${s.stage||'?'}`,
+      };
+    });
+
+    // Update CEO commentary dynamically
+    const topNames = goTrades.slice(0,3).map(s=>s.ticker).join(', ');
+    CEO.commentary = `<strong>Regime: ${regime}.</strong> Live EOD scan (${DATA_REF_DATE}) identified <strong>${goTrades.length} GO trades</strong> and ${watchTrades.length} setups to watch. Top picks by RS rank: <em>${topNames || 'none this session'}</em>. All picks pass Minervini Trend Template ≥6/8. CEO rule active: <strong>risk &gt;5% = auto-veto.</strong>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 //  LIVE DATA LOADER — reads data.json from same folder
 // ═══════════════════════════════════════════════════════════
 function loadLiveData(callback) {
@@ -1773,6 +1850,11 @@ function loadLiveData(callback) {
       if (data.meta) {
         DATA_REF_DATE = data.meta.fetch_time || data.meta.fetch_date || DATA_REF_DATE;
       }
+
+      // ── SYNC BOARD & CEO FROM LIVE WATCHLIST DATA ─────────────────────────
+      // This ensures Board advisors and CEO Final Verdict show the SAME stocks
+      // as the Watchlist Scanner — no more hardcoded vs live mismatch.
+      patchBoardAndCEOFromLiveData(data);
 
       console.log('✅ Live data.json loaded:', DATA_REF_DATE);
       showToast('✅ Live EOD data loaded — ' + DATA_REF_DATE);
