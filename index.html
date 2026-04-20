@@ -835,12 +835,12 @@ let activeTab = {};
 //  MARKET DATA
 // ═══════════════════════════════════════════════════════════
 const INDICES = [
-  {name:'NIFTY 50',   val:22486, chg:+0.72, color:'green'},
-  {name:'SENSEX',     val:74119, chg:+0.68, color:'green'},
-  {name:'BANK NIFTY', val:48230, chg:+1.12, color:'green'},
-  {name:'MID150',     val:18940, chg:-0.23, color:'red'},
-  {name:'NIFTY IT',   val:35620, chg:+1.85, color:'green'},
-  {name:'INDIA VIX',  val:14.2,  chg:-5.4,  color:'gold'},
+  {name:'NIFTY 50',   val:22486,  chg:+0.72, color:'green'},
+  {name:'SENSEX',     val:74119,  chg:+0.68, color:'green'},
+  {name:'BANK NIFTY', val:48230,  chg:+1.12, color:'green'},
+  {name:'NIFTY IT',   val:35620,  chg:+1.85, color:'green'},
+  {name:'INDIA VIX',  val:14.2,   chg:-5.4,  color:'gold'},
+  {name:'NIFTY MID',  val:18940,  chg:-0.23, color:'red'},
 ];
 
 const SECTORS = [
@@ -1818,23 +1818,34 @@ function loadLiveData(callback) {
       LIVE_DATA = data;
       DATA_LOADED_LIVE = true;
 
-      // Patch INDICES from live data
+      // Patch INDICES from live data — match by NAME, not position
+      // This prevents value swaps when fetch_data.py order differs from INDICES array
       if (data.indices && data.indices.length) {
-        data.indices.forEach((idx, i) => {
-          if (INDICES[i]) {
-            INDICES[i].val  = idx.value  || INDICES[i].val;
-            INDICES[i].chg  = idx.chg    || INDICES[i].chg;
-            INDICES[i].color = idx.color || INDICES[i].color;
+        data.indices.forEach(idx => {
+          const match = INDICES.find(x => x.name.toUpperCase() === (idx.name||'').toUpperCase());
+          if (match) {
+            match.val   = (idx.value  != null) ? idx.value  : match.val;
+            match.chg   = (idx.chg    != null) ? idx.chg    : match.chg;
+            match.color = idx.color || match.color;
           }
         });
       }
 
       // Patch SECTORS from live data
+      // Patch SECTORS — match by name to prevent order mismatches
       if (data.sectors && data.sectors.length) {
-        data.sectors.forEach((s, i) => {
-          if (SECTORS[i]) {
-            SECTORS[i].p = s.pct  || SECTORS[i].p;
-            SECTORS[i].t = s.type || SECTORS[i].t;
+        data.sectors.forEach(s => {
+          const match = SECTORS.find(x => x.n && s.name && x.n.toUpperCase() === s.name.toUpperCase());
+          if (match) {
+            match.p = (s.pct  != null) ? s.pct  : match.p;
+            match.t = s.type || match.t;
+          } else {
+            // Fallback: positional update for sectors not found by name
+            const i = data.sectors.indexOf(s);
+            if (SECTORS[i]) {
+              SECTORS[i].p = (s.pct != null) ? s.pct : SECTORS[i].p;
+              SECTORS[i].t = s.type || SECTORS[i].t;
+            }
           }
         });
       }
