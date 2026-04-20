@@ -1719,11 +1719,14 @@ function patchBoardAndCEOFromLiveData(data) {
   const fmt = v => v ? '₹' + Number(v).toLocaleString('en-IN') : '—';
 
   // ── Build picks by grade ──────────────────────────────────────────────────
-  const goTrades   = wl.filter(s => s.grade === 'A+' || s.grade === 'A');
+  const goTrades    = wl.filter(s => s.grade === 'A+' || s.grade === 'A');
   const watchTrades = wl.filter(s => s.grade === 'B+');
-  const allTop     = [...goTrades, ...watchTrades].slice(0, 10);
+  const marketClear = goTrades.length > 0 || watchTrades.length > 0;
 
-  // ── Update each TRADER's picks and topSetups from live data ───────────────
+  // Best available stocks by RS rank (used as fallback when market is all-REJECT)
+  const byRS = [...wl].sort((a,b) => (b.rs||0) - (a.rs||0));
+
+  // ── Trader style criteria ─────────────────────────────────────────────────
   const traderStyles = [
     { id:'minervini', focus: 'VCP / SEPA setup',      criteria: s => s.tt >= 7 && s.rs >= 80 },
     { id:'weinstein', focus: 'Stage 2 breakout',       criteria: s => s.stage === 2 && s.rs >= 65 },
@@ -1732,57 +1735,72 @@ function patchBoardAndCEOFromLiveData(data) {
     { id:'livermore', focus: 'Tape / trend strength',  criteria: s => s.tt >= 5 && s.chg > 0 },
   ];
 
+  // ── Update each TRADER's picks and topSetups — ALWAYS from live data ──────
   TRADERS.forEach((trader, idx) => {
     const style = traderStyles[idx];
     if (!style) return;
-    // Get top 3 picks for this trader's style
-    const myPicks = wl.filter(style.criteria).slice(0, 3).map(s => s.ticker);
-    if (myPicks.length) trader.picks = myPicks;
 
-    // Update topSetups with live data
-    const setupStocks = wl.filter(style.criteria).slice(0, 6);
-    if (setupStocks.length) {
-      trader.topSetups = setupStocks.map(s => ({
-        t: s.ticker, n: s.ticker,
-        pat: s.stage === 2 ? 'Stage 2' : 'Watch',
-        stage: 'Stage ' + (s.stage || '?'),
-        sec: '—',
-        entry: fmt(s.entry),
-        stop:  fmt(s.stop),
-        tgt:   fmt(s.target),
-        grade: s.grade || '—',
-      }));
+    // Try strict criteria first; fall back to top-RS stocks from live watchlist
+    const strictPicks  = wl.filter(style.criteria);
+    const livePicks    = strictPicks.length ? strictPicks : byRS;
+
+    // Always replace static picks with live tickers
+    trader.picks = livePicks.slice(0, 3).map(s => s.ticker);
+
+    // Always update topSetups with live data
+    const setupStocks = livePicks.slice(0, 6);
+    trader.topSetups = setupStocks.map(s => ({
+      t:     s.ticker,
+      n:     s.ticker,
+      pat:   s.stage === 2 ? 'Stage 2' : (s.grade === 'A+' || s.grade === 'A') ? 'GO Trade' : 'Watch',
+      stage: 'Stage ' + (s.stage || '?'),
+      sec:   '—',
+      entry: fmt(s.entry),
+      stop:  fmt(s.stop),
+      tgt:   fmt(s.target),
+      grade: s.grade || '—',
+    }));
+
+    // If market is in correction, update conviction & signal accordingly
+    if (!marketClear) {
+      trader.signal = 'BEAR';
+      trader.conviction = Math.min(trader.conviction, 40);
     }
   });
 
-  // ── Update CEO trades table from live GO trades ───────────────────────────
+  // ── Update CEO trades table ───────────────────────────────────────────────
   const regime = (data.meta && data.meta.regime) || CEO.regime;
   CEO.regime = regime;
 
-  if (goTrades.length || watchTrades.length) {
+  if (marketClear) {
+    // Normal mode — GO/WATCH trades exist
     CEO.trades = [...goTrades, ...watchTrades].slice(0, 8).map(s => {
       const verdict = (s.grade === 'A+' || s.grade === 'A') ? 'GO'
                     : s.grade === 'B+' ? 'WATCH' : 'NO-GO';
-      // Count how many traders' criteria this stock passes (proxy for advisor consensus)
       const advisorCount = traderStyles.filter(ts => ts.criteria(s)).length;
       return {
-        t: s.ticker,
-        n: s.ticker,
-        verdict,
+        t: s.ticker, n: s.ticker, verdict,
         grade: s.grade || '—',
         advisors: Math.max(advisorCount, verdict === 'GO' ? 3 : 1),
-        entry: fmt(s.entry),
-        stop:  fmt(s.stop),
-        tgt:   fmt(s.target),
-        rr:    s.rr ? s.rr + '%' : '—',
-        sz:    s.entry ? '₹' + Math.round(50000 / (s.entry * (s.rr||5) / 100)).toLocaleString('en-IN') + ' shares' : '—',
-        rat:   `TT ${s.tt||0}/8 · RS ${s.rs||0} · Stage ${s.stage||'?'}`,
+        entry: fmt(s.entry), stop: fmt(s.stop), tgt: fmt(s.target),
+        rr:   s.rr ? s.rr + '%' : '—',
+        sz:   s.entry ? '₹' + Math.round(50000 / (s.entry * (s.rr||5) / 100)).toLocaleString('en-IN') + ' shares' : '—',
+        rat:  `TT ${s.tt||0}/8 · RS ${s.rs||0} · Stage ${s.stage||'?'}`,
       };
     });
-
-    // Update CEO commentary dynamically
     const topNames = goTrades.slice(0,3).map(s=>s.ticker).join(', ');
     CEO.commentary = `<strong>Regime: ${regime}.</strong> Live EOD scan (${DATA_REF_DATE}) identified <strong>${goTrades.length} GO trades</strong> and ${watchTrades.length} setups to watch. Top picks by RS rank: <em>${topNames || 'none this session'}</em>. All picks pass Minervini Trend Template ≥6/8. CEO rule active: <strong>risk &gt;5% = auto-veto.</strong>`;
+  } else {
+    // Correction mode — NO qualifying setups; show best watchlist stocks as NO-GO with context
+    CEO.trades = byRS.slice(0, 8).map(s => ({
+      t: s.ticker, n: s.ticker, verdict: 'NO-GO',
+      grade: s.grade || 'REJECT',
+      advisors: 0,
+      entry: '—', stop: '—', tgt: '—', rr: '—', sz: '—',
+      rat: `TT ${s.tt||0}/8 · RS ${s.rs||0} · Stage ${s.stage||'?'} — Not actionable`,
+    }));
+    const rejectCount = wl.filter(s => s.grade === 'REJECT' || !s.grade).length;
+    CEO.commentary = `<strong>⚠️ Regime: ${regime} — MARKET IN CORRECTION.</strong> Live EOD scan (${DATA_REF_DATE}): <strong>${rejectCount} of ${wl.length} stocks REJECT</strong>. Zero A/A+/B+ setups today. <br><br>CEO directive: <strong>RAISE CASH. DO NOT DEPLOY.</strong> Minervini rule — when generals aren't leading, stay on the sidelines. Wait for Stage 2 leaders to emerge before deploying capital. CEO risk rule active: risk &gt;5% = auto-veto.`;
   }
 }
 
