@@ -1,7 +1,7 @@
 {
   "meta": {
     "fetch_date": "2026-04-20",
-    "fetch_time": "2026-04-20 14:59 IST",
+    "fetch_time": "2026-04-20 20:37 IST",
     "data_source": "Yahoo Finance (yfinance)",
     "is_live": false,
     "market_close": "15:30 IST",
@@ -18,122 +18,122 @@
   "indices": [
     {
       "name": "NIFTY 50",
-      "value": 24353.55,
-      "chg": 0.65,
+      "value": 24364.85,
+      "chg": 0.05,
       "color": "green"
     },
     {
       "name": "SENSEX",
-      "value": 78433.49,
-      "chg": -0.08,
-      "color": "red"
+      "value": 78520.3,
+      "chg": 0.03,
+      "color": "green"
     },
     {
       "name": "BANK NIFTY",
-      "value": 56565.7,
-      "chg": 0.85,
+      "value": 56582.35,
+      "chg": 0.03,
       "color": "green"
     },
     {
       "name": "NIFTY IT",
-      "value": 31809.85,
-      "chg": -0.02,
+      "value": 31585.75,
+      "chg": -0.7,
       "color": "red"
     },
     {
       "name": "INDIA VIX",
-      "value": 17.21,
-      "chg": 4.86,
+      "value": 18.79,
+      "chg": -9.18,
       "color": "gold"
     },
     {
       "name": "NIFTY MID",
-      "value": 22045.2,
-      "chg": 1.22,
-      "color": "green"
+      "value": 22025.15,
+      "chg": -0.09,
+      "color": "red"
     }
   ],
   "sectors": [
     {
       "name": "IT/Tech",
-      "pct": "-0.02%",
-      "type": "neutral",
-      "chg": -0.02
+      "pct": "-0.7%",
+      "type": "cold",
+      "chg": -0.7
     },
     {
       "name": "Banking",
-      "pct": "+0.85%",
-      "type": "warm",
-      "chg": 0.85
+      "pct": "+0.03%",
+      "type": "neutral",
+      "chg": 0.03
     },
     {
       "name": "Pharma",
-      "pct": "+0.14%",
+      "pct": "-0.18%",
       "type": "neutral",
-      "chg": 0.14
+      "chg": -0.18
     },
     {
       "name": "Auto",
-      "pct": "+0.2%",
+      "pct": "+0.33%",
       "type": "warm",
-      "chg": 0.2
+      "chg": 0.33
     },
     {
       "name": "FMCG",
-      "pct": "+2.65%",
-      "type": "hot",
-      "chg": 2.65
+      "pct": "-0.21%",
+      "type": "neutral",
+      "chg": -0.21
     },
     {
       "name": "Metals",
-      "pct": "+1.1%",
-      "type": "warm",
-      "chg": 1.1
+      "pct": "-0.39%",
+      "type": "cold",
+      "chg": -0.39
     },
     {
       "name": "Realty",
-      "pct": "+0.94%",
-      "type": "warm",
-      "chg": 0.94
+      "pct": "-0.62%",
+      "type": "cold",
+      "chg": -0.62
     },
     {
       "name": "Energy",
-      "pct": "+1.83%",
-      "type": "hot",
-      "chg": 1.83
+      "pct": "+0.78%",
+      "type": "warm",
+      "chg": 0.78
     },
     {
       "name": "Defence",
-      "pct": "-0.85%",
+      "pct": "-0.99%",
       "type": "cold",
-      "chg": -0.85
+      "chg": -0.99
     },
     {
       "name": "Chemical",
-      "pct": "-0.07%",
+      "pct": "-0.21%",
       "type": "neutral",
-      "chg": -0.07
+      "chg": -0.21
     },
     {
       "name": "Media",
-      "pct": "+0.88%",
-      "type": "warm",
-      "chg": 0.88
+      "pct": "+8.09%",
+      "type": "hot",
+      "chg": 8.09
     },
     {
       "name": "Infra",
-      "pct": "+0.84%",
-      "type": "warm",
-      "chg": 0.84
+      "pct": "+0.09%",
+      "type": "neutral",
+      "chg": 0.09
     }
   ],
   "watchlist": [
     {
       "ticker": "MOTHERSON",
       "name": "MOTHERSON",
-      "ltp": 123.89,
-      "chg": -0.91,
-      "ma50": 121.11,
+      "ltp": 123.19,
+      "chg": -1.47,
+      "ma50": 121.09,
       "ma150": 114.3,
       "ma200": 110.22,
       "ma200_slope": "up",
@@ -154,21 +154,21 @@
       },
       "grade": "A+",
       "ceo_veto": false,
-      "entry": 125.7,
+      "entry": 125.0,
       "stop": 119.9,
-      "target": 137.3,
-      "rr": 4.6,
-      "vol_today": 3858838.0,
-      "avg_vol_20": 24440392.7
+      "target": 135.2,
+      "rr": 4.1,
+      "vol_today": 12864248.0,
+      "avg_vol_20": 24890663.2
     },
     {
       "ticker": "BSE",
       "name": "BSE",
-      "ltp": 3517.8,
-      "chg": -0.39,
-      "ma50": 2930.19,
-      "ma150": 2690.1,
-      "ma200": 2630.45,
+      "ltp": 3470.7,
+      "chg": -1.72,
+      "ma50": 2929.25,
+      "ma150": 2689.79,
+      "ma200": 2630.21,
       "ma200_slope": "up",
       "high52w": 3531.5,
       "low52w": 2040.2,
@@ -191,17 +191,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1227432.0,
-      "avg_vol_20": 5027412.2
+      "vol_today": 3517096.0,
+      "avg_vol_20": 5141895.4
     },
     {
       "ticker": "BEL",
       "name": "BEL",
-      "ltp": 459.9,
-      "chg": -0.62,
-      "ma50": 437.8,
-      "ma150": 417.48,
-      "ma200": 410.77,
+      "ltp": 457.55,
+      "chg": -1.12,
+      "ma50": 437.76,
+      "ma150": 417.47,
+      "ma200": 410.76,
       "ma200_slope": "up",
       "high52w": 468.45,
       "low52w": 295.65,
@@ -224,21 +224,21 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 2773267.0,
-      "avg_vol_20": 15521254.15
+      "vol_today": 9914017.0,
+      "avg_vol_20": 15878291.65
     },
     {
       "ticker": "AXISBANK",
       "name": "AXISBANK",
-      "ltp": 1369.0,
-      "chg": 0.73,
-      "ma50": 1305.45,
-      "ma150": 1257.05,
-      "ma200": 1218.39,
+      "ltp": 1354.7,
+      "chg": -0.32,
+      "ma50": 1305.16,
+      "ma150": 1256.95,
+      "ma200": 1218.32,
       "ma200_slope": "up",
       "high52w": 1403.0,
       "low52w": 1045.2,
-      "rs": 72,
+      "rs": 76,
       "stage": 2,
       "tt": 8,
       "tt_checks": {
@@ -257,41 +257,8 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1064816.0,
-      "avg_vol_20": 8028464.85
-    },
-    {
-      "ticker": "PERSISTENT",
-      "name": "PERSISTENT",
-      "ltp": 5469.6,
-      "chg": 0.42,
-      "ma50": 5160.89,
-      "ma150": 5677.97,
-      "ma200": 5611.55,
-      "ma200_slope": "down",
-      "high52w": 6540.04,
-      "low52w": 4529.4,
-      "rs": 81,
-      "stage": 3,
-      "tt": 4,
-      "tt_checks": {
-        "price_above_200ma": false,
-        "ma200_slope_up": false,
-        "ma150_above_200": true,
-        "ma50_above_150_200": false,
-        "price_above_50ma": true,
-        "pct_25_above_low": false,
-        "within_25_of_high": true,
-        "rs_above_70": true
-      },
-      "grade": "REJECT",
-      "ceo_veto": false,
-      "entry": null,
-      "stop": null,
-      "target": null,
-      "rr": null,
-      "vol_today": 90237.0,
-      "avg_vol_20": 735486.7
+      "vol_today": 4878641.0,
+      "avg_vol_20": 8219156.1
     },
     {
       "ticker": "LTIM",
@@ -304,7 +271,7 @@
       "ma200_slope": "down",
       "high52w": 6407.0,
       "low52w": 4013.8,
-      "rs": 76,
+      "rs": 81,
       "stage": 3,
       "tt": 3,
       "tt_checks": {
@@ -327,13 +294,46 @@
       "avg_vol_20": 433971.5
     },
     {
+      "ticker": "PERSISTENT",
+      "name": "PERSISTENT",
+      "ltp": 5325.2,
+      "chg": -2.23,
+      "ma50": 5158.0,
+      "ma150": 5677.0,
+      "ma200": 5610.83,
+      "ma200_slope": "down",
+      "high52w": 6540.04,
+      "low52w": 4529.4,
+      "rs": 72,
+      "stage": 3,
+      "tt": 4,
+      "tt_checks": {
+        "price_above_200ma": false,
+        "ma200_slope_up": false,
+        "ma150_above_200": true,
+        "ma50_above_150_200": false,
+        "price_above_50ma": true,
+        "pct_25_above_low": false,
+        "within_25_of_high": true,
+        "rs_above_70": true
+      },
+      "grade": "REJECT",
+      "ceo_veto": false,
+      "entry": null,
+      "stop": null,
+      "target": null,
+      "rr": null,
+      "vol_today": 1021416.0,
+      "avg_vol_20": 782045.65
+    },
+    {
       "ticker": "CDSL",
       "name": "CDSL",
-      "ltp": 1378.3,
-      "chg": -1.07,
-      "ma50": 1274.72,
-      "ma150": 1439.35,
-      "ma200": 1481.78,
+      "ltp": 1370.3,
+      "chg": -1.64,
+      "ma50": 1274.56,
+      "ma150": 1439.3,
+      "ma200": 1481.74,
       "ma200_slope": "down",
       "high52w": 1790.3,
       "low52w": 1119.4,
@@ -356,17 +356,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1025436.0,
-      "avg_vol_20": 2365731.6
+      "vol_today": 2430970.0,
+      "avg_vol_20": 2436008.3
     },
     {
       "ticker": "RELIANCE",
       "name": "RELIANCE",
-      "ltp": 1360.8,
-      "chg": -0.31,
-      "ma50": 1394.7,
-      "ma150": 1445.09,
-      "ma200": 1440.12,
+      "ltp": 1363.3,
+      "chg": -0.12,
+      "ma50": 1394.75,
+      "ma150": 1445.1,
+      "ma200": 1440.13,
       "ma200_slope": "down",
       "high52w": 1592.3,
       "low52w": 1286.06,
@@ -389,17 +389,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 2436087.0,
-      "avg_vol_20": 19959694.65
+      "vol_today": 13614733.0,
+      "avg_vol_20": 20518626.95
     },
     {
       "ticker": "HAL",
       "name": "HAL",
-      "ltp": 4350.7,
-      "chg": -0.85,
-      "ma50": 3993.81,
-      "ma150": 4367.76,
-      "ma200": 4420.72,
+      "ltp": 4344.5,
+      "chg": -0.99,
+      "ma50": 3993.68,
+      "ma150": 4367.72,
+      "ma200": 4420.68,
       "ma200_slope": "down",
       "high52w": 5068.38,
       "low52w": 3487.2,
@@ -422,17 +422,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 294014.0,
-      "avg_vol_20": 1457902.95
+      "vol_today": 898541.0,
+      "avg_vol_20": 1488129.3
     },
     {
       "ticker": "HCLTECH",
       "name": "HCLTECH",
-      "ltp": 1430.0,
-      "chg": -0.85,
-      "ma50": 1424.73,
-      "ma150": 1519.16,
-      "ma200": 1516.68,
+      "ltp": 1428.3,
+      "chg": -0.97,
+      "ma50": 1424.7,
+      "ma150": 1519.15,
+      "ma200": 1516.67,
       "ma200_slope": "down",
       "high52w": 1729.6,
       "low52w": 1311.8,
@@ -455,17 +455,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 413080.0,
-      "avg_vol_20": 3861778.8
+      "vol_today": 2352656.0,
+      "avg_vol_20": 3958757.6
     },
     {
       "ticker": "BAJFINANCE",
       "name": "BAJFINANCE",
-      "ltp": 908.75,
-      "chg": 0.06,
-      "ma50": 928.62,
-      "ma150": 979.91,
-      "ma200": 961.98,
+      "ltp": 917.75,
+      "chg": 1.05,
+      "ma50": 928.8,
+      "ma150": 979.97,
+      "ma200": 962.03,
       "ma200_slope": "down",
       "high52w": 1094.15,
       "low52w": 801.55,
@@ -488,17 +488,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1262954.0,
-      "avg_vol_20": 11901068.1
+      "vol_today": 6184179.0,
+      "avg_vol_20": 12147129.35
     },
     {
       "ticker": "ICICIBANK",
       "name": "ICICIBANK",
-      "ltp": 1373.0,
-      "chg": 1.95,
-      "ma50": 1331.04,
-      "ma150": 1361.83,
-      "ma200": 1379.06,
+      "ltp": 1356.2,
+      "chg": 0.7,
+      "ma50": 1330.7,
+      "ma150": 1361.72,
+      "ma200": 1378.98,
       "ma200_slope": "down",
       "high52w": 1477.2,
       "low52w": 1205.9,
@@ -521,17 +521,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 7654284.0,
-      "avg_vol_20": 19939934.35
+      "vol_today": 21551520.0,
+      "avg_vol_20": 20634796.15
     },
     {
       "ticker": "MAZDOCK",
       "name": "MAZDOCK",
-      "ltp": 2613.5,
-      "chg": -0.11,
-      "ma50": 2364.15,
-      "ma150": 2556.69,
-      "ma200": 2637.21,
+      "ltp": 2621.2,
+      "chg": 0.18,
+      "ma50": 2364.31,
+      "ma150": 2556.74,
+      "ma200": 2637.25,
       "ma200_slope": "down",
       "high52w": 3728.0,
       "low52w": 2065.2,
@@ -554,17 +554,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 748998.0,
-      "avg_vol_20": 2220186.15
+      "vol_today": 2545329.0,
+      "avg_vol_20": 2310002.7
     },
     {
       "ticker": "COFORGE",
       "name": "COFORGE",
-      "ltp": 1301.0,
-      "chg": -1.2,
-      "ma50": 1264.16,
-      "ma150": 1587.01,
-      "ma200": 1631.4,
+      "ltp": 1288.1,
+      "chg": -2.18,
+      "ma50": 1263.9,
+      "ma150": 1586.92,
+      "ma200": 1631.34,
       "ma200_slope": "down",
       "high52w": 1973.19,
       "low52w": 1073.9,
@@ -587,16 +587,16 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 600271.0,
-      "avg_vol_20": 3335634.2
+      "vol_today": 2018128.0,
+      "avg_vol_20": 3406527.05
     },
     {
       "ticker": "INFY",
       "name": "INFY",
-      "ltp": 1312.3,
-      "chg": -0.49,
+      "ltp": 1312.6,
+      "chg": -0.46,
       "ma50": 1333.5,
-      "ma150": 1477.68,
+      "ma150": 1477.69,
       "ma200": 1483.64,
       "ma200_slope": "down",
       "high52w": 1689.8,
@@ -620,16 +620,16 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1435473.0,
-      "avg_vol_20": 13205271.85
+      "vol_today": 7172300.0,
+      "avg_vol_20": 13492113.2
     },
     {
       "ticker": "WIPRO",
       "name": "WIPRO",
-      "ltp": 203.01,
-      "chg": -0.64,
-      "ma50": 205.16,
-      "ma150": 231.49,
+      "ltp": 202.48,
+      "chg": -0.9,
+      "ma50": 205.15,
+      "ma150": 231.48,
       "ma200": 234.95,
       "ma200_slope": "down",
       "high52w": 265.81,
@@ -653,17 +653,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 9109339.0,
-      "avg_vol_20": 24730784.65
+      "vol_today": 27927164.0,
+      "avg_vol_20": 25671675.9
     },
     {
       "ticker": "KOTAKBANK",
       "name": "KOTAKBANK",
-      "ltp": 382.65,
-      "chg": -0.25,
-      "ma50": 393.81,
-      "ma150": 412.85,
-      "ma200": 412.59,
+      "ltp": 379.2,
+      "chg": -1.15,
+      "ma50": 393.74,
+      "ma150": 412.82,
+      "ma200": 412.57,
       "ma200_slope": "down",
       "high52w": 453.24,
       "low52w": 353.4,
@@ -686,15 +686,15 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1664736.0,
-      "avg_vol_20": 21190911.6
+      "vol_today": 11146713.0,
+      "avg_vol_20": 21665010.45
     },
     {
       "ticker": "HDFCBANK",
       "name": "HDFCBANK",
-      "ltp": 795.6,
-      "chg": -0.54,
-      "ma50": 850.9,
+      "ltp": 795.45,
+      "chg": -0.56,
+      "ma50": 850.89,
       "ma150": 934.26,
       "ma200": 948.06,
       "ma200_slope": "down",
@@ -719,17 +719,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 15507585.0,
-      "avg_vol_20": 62141816.55
+      "vol_today": 52148044.0,
+      "avg_vol_20": 63973839.5
     },
     {
       "ticker": "TCS",
       "name": "TCS",
-      "ltp": 2576.0,
-      "chg": -0.21,
-      "ma50": 2599.8,
-      "ma150": 2914.04,
-      "ma200": 2958.67,
+      "ltp": 2579.6,
+      "chg": -0.07,
+      "ma50": 2599.87,
+      "ma150": 2914.06,
+      "ma200": 2958.69,
       "ma200_slope": "down",
       "high52w": 3499.46,
       "low52w": 2356.0,
@@ -752,17 +752,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 566437.0,
-      "avg_vol_20": 4431162.65
+      "vol_today": 2288558.0,
+      "avg_vol_20": 4517268.7
     },
     {
       "ticker": "KALYANKJIL",
       "name": "KALYANKJIL",
-      "ltp": 419.15,
-      "chg": -1.8,
-      "ma50": 404.84,
-      "ma150": 456.15,
-      "ma200": 481.31,
+      "ltp": 417.5,
+      "chg": -2.19,
+      "ma50": 404.8,
+      "ma150": 456.14,
+      "ma200": 481.3,
       "ma200_slope": "down",
       "high52w": 611.21,
       "low52w": 361.65,
@@ -785,17 +785,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 1738260.0,
-      "avg_vol_20": 5587342.3
+      "vol_today": 4425676.0,
+      "avg_vol_20": 5721713.1
     },
     {
       "ticker": "DIXON",
       "name": "DIXON",
-      "ltp": 11264.5,
-      "chg": -0.94,
-      "ma50": 10716.43,
-      "ma150": 13243.85,
-      "ma200": 14025.64,
+      "ltp": 11211.0,
+      "chg": -1.41,
+      "ma50": 10715.36,
+      "ma150": 13243.49,
+      "ma200": 14025.37,
       "ma200_slope": "down",
       "high52w": 18331.0,
       "low52w": 9673.0,
@@ -818,17 +818,17 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 231590.0,
-      "avg_vol_20": 708260.9
+      "vol_today": 630673.0,
+      "avg_vol_20": 728215.05
     },
     {
       "ticker": "PGEL",
       "name": "PGEL",
-      "ltp": 556.3,
-      "chg": -0.91,
-      "ma50": 553.66,
-      "ma150": 561.49,
-      "ma200": 592.52,
+      "ltp": 559.05,
+      "chg": -0.42,
+      "ma50": 553.71,
+      "ma150": 561.51,
+      "ma200": 592.53,
       "ma200_slope": "down",
       "high52w": 968.02,
       "low52w": 440.65,
@@ -851,8 +851,8 @@
       "stop": null,
       "target": null,
       "rr": null,
-      "vol_today": 883255.0,
-      "avg_vol_20": 5109200.5
+      "vol_today": 2277436.0,
+      "avg_vol_20": 5178909.55
     }
   ]
 }
