@@ -15,7 +15,7 @@ Collecting pytz>=2022.5 (from yfinance)
 Collecting frozendict>=2.3.4 (from yfinance)
   Using cached frozendict-2.4.7-py3-none-any.whl.metadata (23 kB)
 Collecting peewee>=3.16.2 (from yfinance)
-  Using cached peewee-4.0.4-py3-none-any.whl.metadata (8.6 kB)
+  Downloading peewee-4.0.5-py3-none-any.whl.metadata (8.6 kB)
 Collecting beautifulsoup4>=4.11.1 (from yfinance)
   Using cached beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
 Collecting curl_cffi>=0.15 (from yfinance)
@@ -65,7 +65,7 @@ Using cached curl_cffi-0.15.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86
 Using cached cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (215 kB)
 Using cached frozendict-2.4.7-py3-none-any.whl (16 kB)
 Downloading multitasking-0.0.13-py3-none-any.whl (16 kB)
-Using cached peewee-4.0.4-py3-none-any.whl (144 kB)
+Downloading peewee-4.0.5-py3-none-any.whl (144 kB)
 Using cached platformdirs-4.9.6-py3-none-any.whl (21 kB)
 Using cached protobuf-7.34.1-cp310-abi3-manylinux2014_x86_64.whl (324 kB)
 Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
@@ -81,4 +81,4 @@ Using cached markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
 Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
 Installing collected packages: pytz, peewee, multitasking, websockets, urllib3, typing-extensions, soupsieve, six, pygments, pycparser, protobuf, platformdirs, numpy, mdurl, idna, frozendict, charset_normalizer, certifi, requests, python-dateutil, markdown-it-py, cffi, beautifulsoup4, rich, pandas, curl_cffi, yfinance
 
-Successfully installed beautifulsoup4-4.14.3 certifi-2026.4.22 cffi-2.0.0 charset_normalizer-3.4.7 curl_cffi-0.15.0 frozendict-2.4.7 idna-3.13 markdown-it-py-4.0.0 mdurl-0.1.2 multitasking-0.0.13 numpy-2.4.4 pandas-3.0.2 peewee-4.0.4 platformdirs-4.9.6 protobuf-7.34.1 pycparser-3.0 pygments-2.20.0 python-dateutil-2.9.0.post0 pytz-2026.1.post1 requests-2.33.1 rich-15.0.0 six-1.17.0 soupsieve-2.8.3 typing-extensions-4.15.0 urllib3-2.6.3 websockets-16.0 yfinance-1.3.0
+Successfully installed beautifulsoup4-4.14.3 certifi-2026.4.22 cffi-2.0.0 charset_normalizer-3.4.7 curl_cffi-0.15.0 frozendict-2.4.7 idna-3.13 markdown-it-py-4.0.0 mdurl-0.1.2 multitasking-0.0.13 numpy-2.4.4 pandas-3.0.2 peewee-4.0.5 platformdirs-4.9.6 protobuf-7.34.1 pycparser-3.0 pygments-2.20.0 python-dateutil-2.9.0.post0 pytz-2026.1.post1 requests-2.33.1 rich-15.0.0 six-1.17.0 soupsieve-2.8.3 typing-extensions-4.15.0 urllib3-2.6.3 websockets-16.0 yfinance-1.3.0
