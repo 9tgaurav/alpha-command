@@ -2225,12 +2225,26 @@ function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
       highs.push(bar.h);
       lows.push(bar.l);
       closes.push(bar.c);
-      ma50line.push(ma50 || null);
-      ma200line.push(ma200 || null);
     });
+
+    // ── Compute MA50 / MA200 from real OHLCV closes (not indicator values)
+    // This avoids scale mismatch when LTP uses split-adjusted prices
+    const allCloses = closes;
+    for (let i = 0; i < allCloses.length; i++) {
+      // MA50: rolling 50-day average of closes (use available history)
+      const ma50start  = Math.max(0, i - 49);
+      const ma200start = Math.max(0, i - 199);
+      const slice50  = allCloses.slice(ma50start,  i + 1);
+      const slice200 = allCloses.slice(ma200start, i + 1);
+      const avg50  = slice50.length  >= 10 ? slice50.reduce((a,b)=>a+b,0)/slice50.length  : null;
+      const avg200 = slice200.length >= 10 ? slice200.reduce((a,b)=>a+b,0)/slice200.length : null;
+      ma50line.push(avg50  ? parseFloat(avg50.toFixed(2))  : null);
+      ma200line.push(avg200 ? parseFloat(avg200.toFixed(2)) : null);
+    }
+
     // Update chart title to show real data badge
     const titleEl = document.getElementById('smChartTitle');
-    if (titleEl) titleEl.innerHTML = `📈 REAL PRICE CHART — Last 3 Months &nbsp;·&nbsp; <span style="color:#f0a500">50-DMA</span> &nbsp;·&nbsp; <span style="color:#a855f7">200-DMA</span> &nbsp;<span style="font-size:9px;background:rgba(0,230,118,0.15);color:#00e676;padding:2px 7px;border-radius:4px;border:1px solid rgba(0,230,118,0.3)">✓ LIVE OHLCV</span>`;
+    if (titleEl) titleEl.innerHTML = `📈 REAL PRICE CHART — Last 3 Months &nbsp;·&nbsp; <span style="color:#f0a500">MA50</span> &nbsp;·&nbsp; <span style="color:#a855f7">MA200</span> &nbsp;<span style="font-size:9px;background:rgba(0,230,118,0.15);color:#00e676;padding:2px 7px;border-radius:4px;border:1px solid rgba(0,230,118,0.3)">✓ LIVE OHLCV</span>`;
   } else {
     // ── FALLBACK: flat bars at LTP (shown only if data.json has no ohlcv) ─
     const days = 45;
@@ -2265,14 +2279,13 @@ function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
       data: {
         labels,
         datasets: [
-          // OHLC bars — we render as stacked bars simulating candles
+          // OHLC bars — floating bars [low, high] = Chart.js v4 floating bar syntax
           {
             label: 'High-Low',
-            data: highs.map((h,i) => h - lows[i]),
+            data: highs.map((h,i) => [lows[i], h]),
             backgroundColor: closes.map((c,i) => c >= opens[i] ? 'rgba(0,230,118,0.25)' : 'rgba(255,61,87,0.25)'),
             borderColor:     closes.map((c,i) => c >= opens[i] ? upColor : downColor),
             borderWidth: 1,
-            base: lows,
             order: 2,
           },
           // Close line
@@ -2328,7 +2341,10 @@ function buildStockChart(ticker, ltp, ma50, ma200, latestChg) {
             bodyColor:'#e8eaf0',
             callbacks: {
               label: ctx => {
-                if(ctx.dataset.label==='High-Low') return null;
+                if(ctx.dataset.label==='High-Low') {
+                  const idx = ctx.dataIndex;
+                  return ` H: ₹${highs[idx]?.toLocaleString('en-IN')}  L: ₹${lows[idx]?.toLocaleString('en-IN')}`;
+                }
                 return ` ${ctx.dataset.label}: ₹${ctx.parsed.y ? ctx.parsed.y.toLocaleString('en-IN') : '—'}`;
               }
             }
