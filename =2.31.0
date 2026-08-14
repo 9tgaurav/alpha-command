@@ -1,25 +1,27 @@
 Collecting yfinance
-  Downloading yfinance-1.5.2-py2.py3-none-any.whl.metadata (6.2 kB)
+  Downloading yfinance-1.6.0-py3-none-any.whl.metadata (6.7 kB)
 Collecting pandas
   Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
 Collecting numpy
   Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
 Collecting requests
   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
-Collecting multitasking>=0.0.7 (from yfinance)
-  Downloading multitasking-0.0.13-py3-none-any.whl.metadata (16 kB)
-Collecting platformdirs>=2.0.0 (from yfinance)
-  Downloading platformdirs-4.11.2-py3-none-any.whl.metadata (5.5 kB)
-Collecting pytz>=2022.5 (from yfinance)
-  Downloading pytz-2026.3.post1-py2.py3-none-any.whl.metadata (22 kB)
-Collecting peewee>=3.16.2 (from yfinance)
-  Downloading peewee-4.3.0-py3-none-any.whl.metadata (10 kB)
 Collecting beautifulsoup4>=4.11.1 (from yfinance)
   Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
 Collecting curl_cffi>=0.15 (from yfinance)
   Downloading curl_cffi-0.16.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (17 kB)
+Collecting lxml>=4.9.0 (from yfinance)
+  Downloading lxml-6.1.1-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.5 kB)
+Collecting multitasking>=0.0.7 (from yfinance)
+  Downloading multitasking-0.0.13-py3-none-any.whl.metadata (16 kB)
+Collecting peewee>=3.16.2 (from yfinance)
+  Downloading peewee-4.3.0-py3-none-any.whl.metadata (10 kB)
+Collecting platformdirs>=2.0.0 (from yfinance)
+  Downloading platformdirs-4.11.3-py3-none-any.whl.metadata (5.5 kB)
 Collecting protobuf>=3.19.0 (from yfinance)
   Downloading protobuf-7.35.1-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
+Collecting pytz>=2022.5 (from yfinance)
+  Downloading pytz-2026.3.post1-py2.py3-none-any.whl.metadata (22 kB)
 Collecting websockets>=13.0 (from yfinance)
   Downloading websockets-17.0.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
 Collecting python-dateutil>=2.8.2 (from pandas)
@@ -42,11 +44,11 @@ Collecting pycparser (from cffi>=2.0.0->curl_cffi>=0.15->yfinance)
   Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
 Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas)
   Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
-Downloading yfinance-1.5.2-py2.py3-none-any.whl (144 kB)
+Downloading yfinance-1.6.0-py3-none-any.whl (148 kB)
 Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 46.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 118.2 MB/s  0:00:00
 Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 155.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 273.0 MB/s  0:00:00
 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
 Downloading charset_normalizer-3.5.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (261 kB)
 Downloading idna-3.18-py3-none-any.whl (65 kB)
@@ -54,11 +56,13 @@ Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
 Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
 Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
 Downloading curl_cffi-0.16.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (13.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 245.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 290.0 MB/s  0:00:00
 Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
+Downloading lxml-6.1.1-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 280.6 MB/s  0:00:00
 Downloading multitasking-0.0.13-py3-none-any.whl (16 kB)
 Downloading peewee-4.3.0-py3-none-any.whl (179 kB)
-Downloading platformdirs-4.11.2-py3-none-any.whl (23 kB)
+Downloading platformdirs-4.11.3-py3-none-any.whl (23 kB)
 Downloading protobuf-7.35.1-cp310-abi3-manylinux2014_x86_64.whl (327 kB)
 Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
 Downloading pytz-2026.3.post1-py2.py3-none-any.whl (508 kB)
@@ -67,6 +71,6 @@ Downloading soupsieve-2.9.2-py3-none-any.whl (37 kB)
 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
 Downloading websockets-17.0.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (219 kB)
 Using cached pycparser-3.0-py3-none-any.whl (48 kB)
-Installing collected packages: pytz, multitasking, websockets, urllib3, typing-extensions, soupsieve, six, pycparser, protobuf, platformdirs, peewee, numpy, idna, charset_normalizer, certifi, requests, python-dateutil, cffi, beautifulsoup4, pandas, curl_cffi, yfinance
+Installing collected packages: pytz, multitasking, websockets, urllib3, typing-extensions, soupsieve, six, pycparser, protobuf, platformdirs, peewee, numpy, lxml, idna, charset_normalizer, certifi, requests, python-dateutil, cffi, beautifulsoup4, pandas, curl_cffi, yfinance
 
-Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.0 curl_cffi-0.16.0 idna-3.18 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.3.0 platformdirs-4.11.2 protobuf-7.35.1 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.0.1 yfinance-1.5.2
+Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.0 curl_cffi-0.16.0 idna-3.18 lxml-6.1.1 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.3.0 platformdirs-4.11.3 protobuf-7.35.1 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.0.1 yfinance-1.6.0
