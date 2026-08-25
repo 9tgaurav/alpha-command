@@ -17,7 +17,7 @@ Collecting multitasking>=0.0.7 (from yfinance)
 Collecting peewee>=3.16.2 (from yfinance)
   Downloading peewee-4.4.0-py3-none-any.whl.metadata (10 kB)
 Collecting platformdirs>=2.0.0 (from yfinance)
-  Using cached platformdirs-4.11.3-py3-none-any.whl.metadata (5.5 kB)
+  Downloading platformdirs-4.11.4-py3-none-any.whl.metadata (5.5 kB)
 Collecting protobuf>=3.19.0 (from yfinance)
   Downloading protobuf-7.36.0-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
 Collecting pytz>=2022.5 (from yfinance)
@@ -54,13 +54,13 @@ Using cached urllib3-2.7.0-py3-none-any.whl (131 kB)
 Using cached beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
 Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
 Downloading curl_cffi-0.16.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (13.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 209.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 282.2 MB/s  0:00:00
 Using cached cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
 Downloading lxml-6.1.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 274.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 250.7 MB/s  0:00:00
 Using cached multitasking-0.0.13-py3-none-any.whl (16 kB)
 Downloading peewee-4.4.0-py3-none-any.whl (191 kB)
-Using cached platformdirs-4.11.3-py3-none-any.whl (23 kB)
+Downloading platformdirs-4.11.4-py3-none-any.whl (23 kB)
 Downloading protobuf-7.36.0-cp310-abi3-manylinux2014_x86_64.whl (340 kB)
 Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
 Using cached pytz-2026.3.post1-py2.py3-none-any.whl (508 kB)
@@ -71,4 +71,4 @@ Using cached websockets-17.0.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_
 Using cached pycparser-3.0-py3-none-any.whl (48 kB)
 Installing collected packages: pytz, multitasking, websockets, urllib3, typing-extensions, soupsieve, six, pycparser, protobuf, platformdirs, peewee, numpy, lxml, idna, charset_normalizer, certifi, requests, python-dateutil, cffi, beautifulsoup4, pandas, curl_cffi, yfinance
 
-Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 curl_cffi-0.16.1 idna-3.19 lxml-6.1.2 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.4.0 platformdirs-4.11.3 protobuf-7.36.0 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.0.1 yfinance-1.6.0
+Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 curl_cffi-0.16.1 idna-3.19 lxml-6.1.2 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.4.0 platformdirs-4.11.4 protobuf-7.36.0 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.0.1 yfinance-1.6.0
