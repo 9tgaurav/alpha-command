@@ -1,5 +1,5 @@
 Collecting yfinance
-  Using cached yfinance-1.6.0-py3-none-any.whl.metadata (6.7 kB)
+  Downloading yfinance-1.7.0-py3-none-any.whl.metadata (6.7 kB)
 Collecting pandas
   Using cached pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
 Collecting numpy
@@ -23,7 +23,7 @@ Collecting protobuf>=3.19.0 (from yfinance)
 Collecting pytz>=2022.5 (from yfinance)
   Using cached pytz-2026.3.post1-py2.py3-none-any.whl.metadata (22 kB)
 Collecting websockets>=13.0 (from yfinance)
-  Using cached websockets-17.0.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+  Downloading websockets-17.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
 Collecting python-dateutil>=2.8.2 (from pandas)
   Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
 Collecting charset_normalizer<4,>=2 (from requests)
@@ -44,7 +44,7 @@ Collecting pycparser (from cffi>=2.0.0->curl_cffi>=0.15->yfinance)
   Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
 Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas)
   Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
-Using cached yfinance-1.6.0-py3-none-any.whl (148 kB)
+Downloading yfinance-1.7.0-py3-none-any.whl (149 kB)
 Using cached pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
 Using cached numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
 Using cached requests-2.34.2-py3-none-any.whl (73 kB)
@@ -54,10 +54,10 @@ Using cached urllib3-2.7.0-py3-none-any.whl (131 kB)
 Using cached beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
 Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
 Downloading curl_cffi-0.16.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (13.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 114.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 241.4 MB/s  0:00:00
 Using cached cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
 Downloading lxml-6.1.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 344.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 297.4 MB/s  0:00:00
 Using cached multitasking-0.0.13-py3-none-any.whl (16 kB)
 Downloading peewee-4.4.0-py3-none-any.whl (191 kB)
 Downloading platformdirs-4.11.4-py3-none-any.whl (23 kB)
@@ -67,8 +67,8 @@ Using cached pytz-2026.3.post1-py2.py3-none-any.whl (508 kB)
 Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
 Using cached soupsieve-2.9.2-py3-none-any.whl (37 kB)
 Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
-Using cached websockets-17.0.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (219 kB)
+Downloading websockets-17.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (224 kB)
 Using cached pycparser-3.0-py3-none-any.whl (48 kB)
 Installing collected packages: pytz, multitasking, websockets, urllib3, typing-extensions, soupsieve, six, pycparser, protobuf, platformdirs, peewee, numpy, lxml, idna, charset_normalizer, certifi, requests, python-dateutil, cffi, beautifulsoup4, pandas, curl_cffi, yfinance
 
-Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 curl_cffi-0.16.2 idna-3.19 lxml-6.1.2 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.4.0 platformdirs-4.11.4 protobuf-7.36.0 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.0.1 yfinance-1.6.0
+Successfully installed beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 curl_cffi-0.16.2 idna-3.19 lxml-6.1.2 multitasking-0.0.13 numpy-2.4.6 pandas-3.0.5 peewee-4.4.0 platformdirs-4.11.4 protobuf-7.36.0 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 soupsieve-2.9.2 typing-extensions-4.16.0 urllib3-2.7.0 websockets-17.1 yfinance-1.7.0
