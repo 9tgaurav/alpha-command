@@ -54,10 +54,10 @@ Using cached urllib3-2.7.0-py3-none-any.whl (131 kB)
 Using cached beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
 Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
 Downloading curl_cffi-0.16.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (13.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 199.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 73.3 MB/s  0:00:00
 Using cached cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
 Downloading lxml-6.1.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 327.8 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 355.7 MB/s  0:00:00
 Using cached multitasking-0.0.13-py3-none-any.whl (16 kB)
 Downloading peewee-4.4.0-py3-none-any.whl (191 kB)
 Downloading platformdirs-4.11.7-py3-none-any.whl (23 kB)
