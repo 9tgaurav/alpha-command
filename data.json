@@ -1,7 +1,7 @@
 {
   "meta": {
     "fetch_date": "2026-09-28",
-    "fetch_time": "2026-09-28 15:33 IST",
+    "fetch_time": "2026-09-28 23:39 IST",
     "data_source": "Yahoo Finance (yfinance)",
     "is_live": false,
     "market_close": "15:30 IST",
@@ -25,8 +25,8 @@
     },
     {
       "name": "SENSEX",
-      "value": 72806.01,
-      "chg": -1.47,
+      "value": 72771.72,
+      "chg": -1.52,
       "color": "red"
     },
     {
@@ -43,8 +43,8 @@
     },
     {
       "name": "INDIA VIX",
-      "value": 13.6,
-      "chg": -11.84,
+      "value": 13.64,
+      "chg": -12.15,
       "color": "gold"
     },
     {
