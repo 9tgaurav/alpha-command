@@ -48,7 +48,7 @@ Collecting tzdata (from python-dateutil>=2.9.0->pandas)
   Downloading tzdata-2026.5-py2.py3-none-any.whl.metadata (1.4 kB)
 Using cached yfinance-1.7.0-py3-none-any.whl (149 kB)
 Downloading pandas-3.1.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.3/12.3 MB 145.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.3/12.3 MB 166.2 MB/s  0:00:00
 Using cached numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
 Using cached requests-2.34.2-py3-none-any.whl (73 kB)
 Using cached charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (269 kB)
