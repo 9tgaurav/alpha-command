@@ -1,7 +1,7 @@
 {
   "meta": {
-    "fetch_date": "2026-11-09",
-    "fetch_time": "2026-11-09 17:26 IST",
+    "fetch_date": "2026-11-10",
+    "fetch_time": "2026-11-10 02:12 IST",
     "data_source": "Yahoo Finance (yfinance)",
     "is_live": false,
     "market_close": "15:30 IST",
@@ -18,89 +18,89 @@
   "indices": [
     {
       "name": "NIFTY 50",
-      "value": 25044.65,
-      "chg": 0.06,
+      "value": 25030.35,
+      "chg": 2.01,
       "color": "green"
     },
     {
       "name": "SENSEX",
-      "value": 81106.65,
-      "chg": 0.1,
+      "value": 81028.02,
+      "chg": 2.17,
       "color": "green"
     },
     {
       "name": "BANK NIFTY",
-      "value": 59741.25,
-      "chg": 1.11,
+      "value": 59086.0,
+      "chg": 2.27,
       "color": "green"
     },
     {
       "name": "NIFTY IT",
-      "value": 32468.9,
-      "chg": -1.54,
-      "color": "red"
+      "value": 32977.9,
+      "chg": 0.43,
+      "color": "green"
     },
     {
       "name": "INDIA VIX",
-      "value": 17.42,
-      "chg": 0.29,
+      "value": 17.47,
+      "chg": -12.13,
       "color": "gold"
     },
     {
       "name": "NIFTY MID",
-      "value": 22408.55,
-      "chg": 0.62,
-      "color": "green"
+      "value": 22271.15,
+      "chg": -0.09,
+      "color": "red"
     }
   ],
   "sectors": [
     {
       "name": "IT/Tech",
-      "pct": "-1.54%",
-      "type": "cold",
-      "chg": -1.54
+      "pct": "+0.43%",
+      "type": "warm",
+      "chg": 0.43
     },
     {
       "name": "Banking",
-      "pct": "+1.11%",
-      "type": "warm",
-      "chg": 1.11
+      "pct": "+2.27%",
+      "type": "hot",
+      "chg": 2.27
     },
     {
       "name": "Pharma",
-      "pct": "+3.42%",
-      "type": "hot",
-      "chg": 3.42
+      "pct": "+1.21%",
+      "type": "warm",
+      "chg": 1.21
     },
     {
       "name": "Auto",
-      "pct": "+0.41%",
+      "pct": "+0.76%",
       "type": "warm",
-      "chg": 0.41
+      "chg": 0.76
     },
     {
       "name": "FMCG",
-      "pct": "-0.27%",
-      "type": "neutral",
-      "chg": -0.27
+      "pct": "+0.67%",
+      "type": "warm",
+      "chg": 0.67
     },
     {
       "name": "Metals",
-      "pct": "-0.11%",
-      "type": "neutral",
-      "chg": -0.11
+      "pct": "+0.66%",
+      "type": "warm",
+      "chg": 0.66
     },
     {
       "name": "Realty",
-      "pct": "+0.11%",
+      "pct": "+0.09%",
       "type": "neutral",
-      "chg": 0.11
+      "chg": 0.09
     },
     {
       "name": "Energy",
-      "pct": "+0.81%",
-      "type": "warm",
-      "chg": 0.81
+      "pct": "-0.05%",
+      "type": "neutral",
+      "chg": -0.05
     },
     {
       "name": "Defence",
@@ -122,9 +122,9 @@
     },
     {
       "name": "Infra",
-      "pct": "+0.17%",
-      "type": "neutral",
-      "chg": 0.17
+      "pct": "+0.77%",
+      "type": "warm",
+      "chg": 0.77
     }
   ],
   "watchlist": [
